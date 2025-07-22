@@ -34,6 +34,7 @@ class User extends Authenticatable
         'image_url',
         'is_active',
         'is_admin',
+        'is_super_admin',
     ];
 
     /**
@@ -56,7 +57,7 @@ class User extends Authenticatable
         return [
             'is_active' => 'boolean',
             'is_admin' => 'boolean',
-            'is_vet' => 'boolean',
+            'is_super_admin' => 'boolean',
         ];
     }
 

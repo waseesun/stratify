@@ -5,7 +5,9 @@ return [
     'documentations' => [
         'default' => [
             'api' => [
-                'title' => 'L5 Swagger UI',
+                'title' => 'Stratify API',
+                'description' => 'API documentation for the Stratify project',
+                'version' => '1.0.0',
             ],
 
             'routes' => [
