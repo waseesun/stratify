@@ -24,21 +24,85 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
+            'first_name' => $this->faker->firstName(),
+            'last_name' => $this->faker->lastName(),
+            'email' => $this->faker->unique()->safeEmail(),
+            'username' => $this->faker->unique()->userName(),
+            'address' => $this->faker->address(),
+            'password' => Hash::make('password'),
+            'description' => $this->faker->paragraph(),
+            'image_url' => null,
+            'is_active' => true,
+            'is_admin' => false,
+            'is_super_admin' => false,
             'remember_token' => Str::random(10),
         ];
     }
 
     /**
-     * Indicate that the model's email address should be unverified.
+     * Indicate a specific password for the user.
+     *
+     * @param string $password
+     * @return $this
      */
-    public function unverified(): static
+    public function withPassword(string $password): static
     {
         return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
+            'password' => $password,
+        ]);
+    }
+
+    /**
+     * Indicate that the user has a 'company' role.
+     */
+    public function company(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'company',
+        ]);
+    }
+
+    /**
+     * Indicate that the user has a 'provider' role.
+     */
+    public function provider(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'provider',
+        ]);
+    }
+
+    /**
+     * Indicate that the user is an admin.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'admin',
+            'is_admin' => true,
+        ]);
+    }
+
+    /**
+     * Indicate that the user is an Super Admin.
+     */
+    public function superAdmin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'admin',
+            'is_admin' => true,
+            'is_super_admin' => true,
+        ]);
+    }
+
+    /**
+     * Indicate that the user is inactive.
+     */
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'provider',
+            'is_active' => false,
         ]);
     }
 }
