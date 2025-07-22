@@ -13,13 +13,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory(4)->create();
-        
         User::factory()->admin()->create();
+
+        User::factory()->superAdmin()->create();
         
-        User::factory()->company()->count(2)->create();
+        User::factory()->company()->count(4)->create();
         
-        User::factory()->provider()->count(2)->create();
+        User::factory()->provider()->count(4)->create();
 
         User::factory()->inactive()->create();
     }

@@ -30,11 +30,11 @@ class UserFactory extends Factory
             'username' => $this->faker->unique()->userName(),
             'address' => $this->faker->address(),
             'password' => Hash::make('password'),
-            'role' => 'user',
             'description' => $this->faker->paragraph(),
             'image_url' => null,
             'is_active' => true,
             'is_admin' => false,
+            'is_super_admin' => false,
             'remember_token' => Str::random(10),
         ];
     }
@@ -78,7 +78,20 @@ class UserFactory extends Factory
     public function admin(): static
     {
         return $this->state(fn (array $attributes) => [
+            'role' => 'admin',
             'is_admin' => true,
+        ]);
+    }
+
+    /**
+     * Indicate that the user is an Super Admin.
+     */
+    public function superAdmin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'admin',
+            'is_admin' => true,
+            'is_super_admin' => true,
         ]);
     }
 
@@ -88,6 +101,7 @@ class UserFactory extends Factory
     public function inactive(): static
     {
         return $this->state(fn (array $attributes) => [
+            'role' => 'provider',
             'is_active' => false,
         ]);
     }
