@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Http\Requests\User\RegisterUserRequest;
@@ -707,7 +708,7 @@ class UserController extends Controller
 
             return response()->json([
                 "success" => "User updated successfully.",
-                $foundUser->fresh(),
+                "data" => $foundUser->fresh(),
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
