@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\User;
+use App\Models\Category;
 
 class DatabaseSeeder extends Seeder
 {
@@ -22,5 +23,7 @@ class DatabaseSeeder extends Seeder
         User::factory()->provider()->count(4)->create();
 
         User::factory()->inactive()->create();
+
+        Category::factory()->count(5)->create();
     }
 }
