@@ -52,22 +52,6 @@ class UserController extends Controller
 {
     use AuthenticateUser;
 
-    private function checkRequestData(Request $request) {
-        if ($request->has('is_admin') && !Auth::user()->is_super_admin) {
-            return response()->json([
-                "errors" => "You are not authorized to create an admin user."
-            ], 403);
-        }
-    
-        if ($request->has('is_active') || $request->has('role')) {
-            return response()->json([
-                "errors" => "Unauthorized key"
-            ], 403);
-        }
-
-        return null;
-    }
-
     private function imageHandler(Request $request, array &$validated, ?User $user = null): void
     {
         if ($request->hasFile('image_url')) {
@@ -327,12 +311,6 @@ class UserController extends Controller
      */
     public function createCompanyUser(RegisterUserRequest $request): JsonResponse
     {
-        $checkReqData = $this->checkRequestData($request);
-
-        if ($checkReqData) {
-            return $checkReqData;
-        }
-
         $validated = $request->validated();
         $validated['role'] = 'company';
 
@@ -439,12 +417,6 @@ class UserController extends Controller
      */
     public function createProviderUser(RegisterUserRequest $request): JsonResponse
     {
-        $checkReqData = $this->checkRequestData($request);
-
-        if ($checkReqData) {
-            return $checkReqData;
-        }
-
         $validated = $request->validated();
         $validated['role'] = 'provider';
 
@@ -552,10 +524,16 @@ class UserController extends Controller
      */
     public function createAdminUser(RegisterUserRequest $request): JsonResponse
     {
-        $checkReqData = $this->checkRequestData($request);
+        $checkAuthUser = $this->ensureAuthenticated();
 
-        if ($checkReqData) {
-            return $checkReqData;
+        if ($checkAuthUser) {
+            return $checkAuthUser;
+        }
+
+        if (!Auth::user()->is_super_admin) {
+            return response()->json([
+                "errors" => "You are not authorized to create an admin user."
+            ], 403);
         }
 
         $validated = $request->validated();
@@ -777,7 +755,7 @@ class UserController extends Controller
                 ], 404);
             }
 
-            if (Auth::user() !== $foundUser) {
+            if (Auth::user() !== $foundUser && !Auth::user()->is_super_admin) {
                 return response()->json([
                     'errors' => 'You are not authorized to delete this user.'
                 ], 403);

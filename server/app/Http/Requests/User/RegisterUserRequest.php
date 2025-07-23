@@ -5,6 +5,8 @@ namespace App\Http\Requests\User;
 use Illuminate\Validation\Rule;
 use App\Http\Requests\BaseRequest;
 use App\Rules\StrongPassword;
+use \Illuminate\Validation\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class RegisterUserRequest extends BaseRequest
 {
@@ -39,6 +41,26 @@ class RegisterUserRequest extends BaseRequest
                 Rule::dimensions()->maxWidth(1000)->maxHeight(1000), // Optional: Max dimensions
             ],
         ];
+    }
+
+    /**
+     * Configure the validator instance with user-specific checks related to roles and restricted fields.
+     *
+     * @param  \Illuminate\Validation\Validator  $validator
+     * @return void
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function ($validator) {
+            $request = $this->request;
+            if ($request->has('is_admin')) {
+                $validator->errors()->add('permission_denied', 'You are not authorized to create admin.');
+            }
+
+            if ($request->has('is_active') || $request->has('role')) {
+                $validator->errors()->add('permission_denied', 'You are not authorized to set user status.');
+            }
+        });
     }
 
     public function messages(): array

@@ -8,6 +8,8 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 class BaseRequest extends FormRequest
 {
+    private const string FORBIDDEN_KEY = 'permission_denied';
+
     /**
      * Handle a failed validation attempt.
      *
@@ -18,6 +20,14 @@ class BaseRequest extends FormRequest
      */
     protected function failedValidation(Validator $validator)
     {
+        if ($validator->errors()->has(self::FORBIDDEN_KEY)) {
+            // Forbidden exception
+            throw new HttpResponseException(response()->json([
+                'errors' => $validator->errors()->first(self::FORBIDDEN_KEY)
+            ], 403));
+        }
+
+        // Validation exception
         throw new HttpResponseException(response()->json([
             'errors' => $validator->errors()
         ], 422));
