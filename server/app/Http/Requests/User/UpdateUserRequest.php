@@ -4,7 +4,6 @@ namespace App\Http\Requests\User;
 
 use App\Http\Requests\BaseRequest;
 use Illuminate\Validation\Rule;
-use App\Rules\StrongPassword;
 
 class UpdateUserRequest extends BaseRequest
 {
@@ -33,10 +32,10 @@ class UpdateUserRequest extends BaseRequest
             'description' => ['nullable', 'string'],
             'image_url' => [
                 'nullable',
-                File::image()
-                    ->max(2 * 1024) // Max File Size
-                    ->Mimes('jpeg', 'png', 'jpg') // Types allowed
-                    ->dimensions(Rule::dimensions()->maxWidth(1000)->maxHeight(1000)), // Optional: Max dimensions
+                'image',
+                'mimes:jpeg,png,jpg', // Allowed MIME types
+                'max:2048', // Max File Size in KB
+                Rule::dimensions()->maxWidth(1000)->maxHeight(1000), // Optional: Max dimensions
             ],
         ];
     }

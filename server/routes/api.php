@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\User\UserController;
+use App\Http\Controllers\Project\CategoryController;
 
 
 Route::post('/login', [AuthController::class, 'login'])
@@ -19,10 +20,10 @@ Route::middleware('auth:sanctum')->group(function () {
         ->name('api.logout');
 
     Route::get('/users', [UserController::class, 'index'])
-        ->name('api.getUser');
+        ->name('api.getUsers');
 
     Route::get('/users/{user}', [UserController::class, 'show'])
-        ->name('api.getUserByIdentifier');
+        ->name('api.getUser');
 
     Route::post('/users/admin', [UserController::class, 'createAdminUser'])
         ->name('api.createAdminUser');
@@ -32,4 +33,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::delete('/users/{user}', [UserController::class, 'destroy'])
         ->name('api.deleteUser');
+
+    Route::get('/categories', [CategoryController::class, 'index'])
+        ->name('api.getCategories');
+
+    Route::get('/categories/{category}', [CategoryController::class, 'show'])
+        ->name('api.getCategory');
+
+    Route::post('/categories', [CategoryController::class, 'create'])
+        ->name('api.createCategory');
+
+    Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])
+        ->name('api.deleteCategory');
     });

@@ -5,11 +5,11 @@ namespace App\Http\Requests\User;
 use Illuminate\Validation\Rule;
 use App\Http\Requests\BaseRequest;
 use App\Rules\StrongPassword;
+use \Illuminate\Validation\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class RegisterUserRequest extends BaseRequest
 {
-    private $roles = ['admin', 'company', 'provider'];
-
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -32,18 +32,39 @@ class RegisterUserRequest extends BaseRequest
             'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')],
             'password' => ['required', 'string', 'min:8', 'confirmed', new StrongPassword()],
             'address' => ['nullable', 'string', 'max:255'],
-            'role' => ['required', 'string', Rule::in($this->roles)],
             'description' => ['nullable', 'string'],
             'image_url' => [
                 'nullable',
-                File::image()
-                    ->max(2 * 1024) // Max File Size
-                    ->Mimes('jpeg', 'png', 'jpg') // Types allowed
-                    ->dimensions(Rule::dimensions()->maxWidth(1000)->maxHeight(1000)), // Optional: Max dimensions
+                'image',
+                'mimes:jpeg,png,jpg', // Allowed MIME types
+                'max:2048', // Max File Size in KB
+                Rule::dimensions()->maxWidth(1000)->maxHeight(1000), // Optional: Max dimensions
             ],
-            'is_admin' => ['nullable', 'boolean'],
-            'is_active' => ['prohibited'],
         ];
+    }
+
+    /**
+     * Configure the validator instance with user-specific checks related to roles and restricted fields.
+     *
+     * @param  \Illuminate\Validation\Validator  $validator
+     * @return void
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function ($validator) {
+            $request = $this->request;
+            if ($request->has('is_admin')) {
+                $validator->errors()->add(
+                    'permission_denied', 'You are not authorized to create admin.'
+                );
+            }
+
+            if ($request->has('is_active') || $request->has('role')) {
+                $validator->errors()->add(
+                    'permission_denied', 'You are not authorized to set user status.'
+                );
+            }
+        });
     }
 
     public function messages(): array
@@ -52,8 +73,6 @@ class RegisterUserRequest extends BaseRequest
             'email.unique' => 'The email address is already in use.',
             'username.unique' => 'The username is already taken.',
             'password.confirmed' => 'The password confirmation does not match.',
-            'role.in' => 'The role must be one of: ' . implode(', ', $this->roles),
-            'is_active.prohibited' => 'The is_active field is not allowed.',
             'image_url.image' => 'The file must be an image.',
             'image_url.max' => 'The image may not be greater than 2MB.',
             'image_url.mimes' => 'The image must be a file of type: jpeg, png, jpg.',
