@@ -54,11 +54,15 @@ class RegisterUserRequest extends BaseRequest
         $validator->after(function ($validator) {
             $request = $this->request;
             if ($request->has('is_admin')) {
-                $validator->errors()->add('permission_denied', 'You are not authorized to create admin.');
+                $validator->errors()->add(
+                    'permission_denied', 'You are not authorized to create admin.'
+                );
             }
 
             if ($request->has('is_active') || $request->has('role')) {
-                $validator->errors()->add('permission_denied', 'You are not authorized to set user status.');
+                $validator->errors()->add(
+                    'permission_denied', 'You are not authorized to set user status.'
+                );
             }
         });
     }
