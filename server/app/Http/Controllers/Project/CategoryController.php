@@ -232,7 +232,7 @@ class CategoryController extends Controller
      */
     public function destroy(Request $request, string $category)
     {
-        if (!Auth::user()->is_super_admin) {
+        if (!Auth::user()->isSuperAdmin()) {
             return response()->json([
                 'errors' => 'You are not authorized to delete categories.'
             ], 403);

@@ -37,7 +37,7 @@ class CategoryRequest extends BaseRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function ($validator) {
-            if (!Auth::check() || !Auth::user()->is_super_admin) {
+            if (!Auth::check() || !Auth::user()->isSuperAdmin()) {
                 $validator->errors()->add(
                     'permission_denied', 'You are not authorized to create a category'
                 );

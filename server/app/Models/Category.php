@@ -15,4 +15,12 @@ class Category extends Model
     protected $fillable = [
         'name',
     ];
+
+    /**
+     * Get the problems for the category.
+     */
+    public function problems()
+    {
+        return $this->hasMany(Problem::class);
+    }
 }

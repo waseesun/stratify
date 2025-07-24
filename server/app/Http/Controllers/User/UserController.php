@@ -134,7 +134,7 @@ class UserController extends Controller
             return $checkAuthUser;
         }
 
-        if (!Auth::user()->is_admin) {
+        if (!Auth::user()->isAdmin()) {
             return response()->json([
                 "errors" => "You are not authorized to view all users."
             ], 403);
@@ -209,7 +209,7 @@ class UserController extends Controller
                 return response()->json(['error' => 'User not found'], 404);
             }
 
-            if (Auth::user() !== $foundUser && !Auth::user()->is_admin) {
+            if (Auth::user() !== $foundUser && !Auth::user()->isAdmin()) {
                 return response()->json( [
                     "errors" => "You are not authorized to view this user."
                 ], 403);
@@ -530,7 +530,7 @@ class UserController extends Controller
             return $checkAuthUser;
         }
 
-        if (!Auth::user()->is_super_admin) {
+        if (!Auth::user()->isSuperAdmin()) {
             return response()->json([
                 "errors" => "You are not authorized to create an admin user."
             ], 403);
@@ -666,7 +666,7 @@ class UserController extends Controller
                 ], 404);
             }
 
-            if (Auth::user() !== $foundUser && !Auth::user()->is_super_admin) {
+            if (Auth::user() !== $foundUser && !Auth::user()->isSuperAdmin()) {
                 return response()->json( [
                     "errors" => "You are not authorized to update this user."
                 ], 403);
@@ -755,7 +755,7 @@ class UserController extends Controller
                 ], 404);
             }
 
-            if (Auth::user() !== $foundUser && !Auth::user()->is_super_admin) {
+            if (Auth::user() !== $foundUser && !Auth::user()->isSuperAdmin()) {
                 return response()->json([
                     'errors' => 'You are not authorized to delete this user.'
                 ], 403);
