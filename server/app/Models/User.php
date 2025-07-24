@@ -132,7 +132,7 @@ class User extends Authenticatable
 
     public function isSuperAdmin(): bool
     {
-        return $this->is_admin;
+        return $this->is_super_admin;
     }
 
     /**
