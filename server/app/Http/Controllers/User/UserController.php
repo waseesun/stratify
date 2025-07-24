@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers\User;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Http\Requests\User\RegisterUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
+use App\Http\Requests\User\UpdatePortfolioLinksRequest;
 use App\Traits\AuthenticateUser;
 use App\OpenApi\Annotations as OA;
 
@@ -46,6 +49,17 @@ use App\OpenApi\Annotations as OA;
  * @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/User")),
  * @OA\Property(property="links", type="object", description="Pagination links"),
  * @OA\Property(property="meta", type="object", description="Pagination meta information")
+ * )
+ *
+ * @OA\Schema(
+ * schema="PortfolioLink",
+ * title="PortfolioLink",
+ * description="Portfolio link model",
+ * @OA\Property(property="id", type="integer", format="int64", description="ID of the portfolio link"),
+ * @OA\Property(property="provider_id", type="integer", format="int64", description="ID of the user (provider) who owns this link"),
+ * @OA\Property(property="link", type="string", format="url", description="The URL of the portfolio link"),
+ * @OA\Property(property="created_at", type="string", format="date-time", nullable=true, description="Timestamp when the portfolio link was created"),
+ * @OA\Property(property="updated_at", type="string", format="date-time", nullable=true, description="Timestamp when the portfolio link was last updated")
  * )
  */
 class UserController extends Controller
@@ -144,6 +158,7 @@ class UserController extends Controller
             $users = User::paginate(10);
             return response()->json($users, 200);
         } catch (\Exception $e) {
+            Log::error($e);
             return response()->json([
                 "errors" => $e->getMessage()
             ], 500);
@@ -156,7 +171,7 @@ class UserController extends Controller
      * operationId="getUserByIdOrSlug",
      * tags={"Users"},
      * summary="Get user details by ID or slug",
-     * description="Retrieves the details of a specific user by their ID or slug. A user can view their own profile, or an admin can view any user's profile.",
+     * description="Retrieves the details of a specific user by their ID or slug. A user can view their own profile, or an admin can view any user's profile. Includes portfolio links if the user is a 'provider'.",
      * security={{"sanctum": {}}},
      * @OA\Parameter(
      * name="user",
@@ -168,7 +183,20 @@ class UserController extends Controller
      * @OA\Response(
      * response=200,
      * description="Successful operation",
-     * @OA\JsonContent(ref="#/components/schemas/User")
+     * @OA\JsonContent(
+     * allOf={
+     * @OA\Schema(ref="#/components/schemas/User"),
+     * @OA\Schema(
+     * @OA\Property(
+     * property="portfolio_links",
+     * type="array",
+     * @OA\Items(ref="#/components/schemas/PortfolioLink"),
+     * nullable=true,
+     * description="List of portfolio links for 'provider' users."
+     * )
+     * )
+     * }
+     * )
      * ),
      * @OA\Response(
      * response=401,
@@ -202,21 +230,26 @@ class UserController extends Controller
 
         try {
             $foundUser = User::where('id', $user)
-            ->orWhere('slug', $user)
-            ->first();
+                ->orWhere('slug', $user)
+                ->first();
 
             if (!$foundUser) {
                 return response()->json(['error' => 'User not found'], 404);
             }
 
-            if (Auth::user() !== $foundUser && !Auth::user()->isAdmin()) {
-                return response()->json( [
+            if (Auth::user()->id !== $foundUser->id && !Auth::user()->isAdmin()) {
+                return response()->json([
                     "errors" => "You are not authorized to view this user."
                 ], 403);
             }
 
+            if ($foundUser->role === 'provider') {
+                $foundUser->load('portfolioLinks');
+            }
+
             return response()->json($foundUser, 200);
         } catch (\Exception $e) {
+            Log::error($e);
             return response()->json([
                 "errors" => $e->getMessage()
             ], 500);
@@ -323,6 +356,7 @@ class UserController extends Controller
                 "success" => "User created successfully. Please verify your email to activate your account.",
             ], 201);
         } catch (\Exception $e) {
+            Log::error($e);
             return response()->json([
                 "errors" => $e->getMessage()
             ], 500);
@@ -429,6 +463,7 @@ class UserController extends Controller
                 "success" => "User created successfully. Please verify your email to activate your account.",
             ], 201);
         } catch (\Exception $e) {
+            Log::error($e);
             return response()->json([
                 "errors" => $e->getMessage()
             ], 500);
@@ -549,6 +584,7 @@ class UserController extends Controller
                 "success" => "User created successfully. Please verify your email to activate your account.",
             ], 201);
         } catch (\Exception $e) {
+            Log::error($e);
             return response()->json([
                 "errors" => $e->getMessage()
             ], 500);
@@ -602,7 +638,6 @@ class UserController extends Controller
      * description="User updated successfully",
      * @OA\JsonContent(
      * @OA\Property(property="success", type="string", example="User updated successfully."),
-     * @OA\Property(property="user", ref="#/components/schemas/User")
      * )
      * ),
      * @OA\Response(
@@ -657,8 +692,8 @@ class UserController extends Controller
 
         try {
             $foundUser = User::where('id', $user)
-            ->orWhere('slug', $user)
-            ->first();
+                ->orWhere('slug', $user)
+                ->first();
 
             if (!$foundUser) {
                 return response()->json([
@@ -667,7 +702,7 @@ class UserController extends Controller
             }
 
             if (Auth::user() !== $foundUser && !Auth::user()->isSuperAdmin()) {
-                return response()->json( [
+                return response()->json([
                     "errors" => "You are not authorized to update this user."
                 ], 403);
             }
@@ -686,16 +721,159 @@ class UserController extends Controller
 
             return response()->json([
                 "success" => "User updated successfully.",
-                "data" => $foundUser->fresh(),
             ], 200);
         } catch (\Exception $e) {
+            Log::error($e);
             return response()->json([
                 "error" => $e->getMessage()
             ], 500);
         }
     }
 
-     /**
+    /**
+     * @OA\Patch(
+     * path="/api/users/{user}/portfolio-links",
+     * operationId="updatePortfolioLinks",
+     * tags={"Users"},
+     * summary="Update a user's portfolio links",
+     * description="Updates the portfolio links for a specific user. Only the user themselves or a super admin can update these links. The target user must have the 'provider' role.",
+     * security={{"sanctum": {}}},
+     * @OA\Parameter(
+     * name="user",
+     * in="path",
+     * description="ID of the user whose portfolio links are to be updated.",
+     * required=true,
+     * @OA\Schema(type="integer", format="int64", example=1)
+     * ),
+     * @OA\RequestBody(
+     * required=true,
+     * description="Array of portfolio links (URLs) to associate with the user. Existing links not in this array will be deleted, and new ones will be added.",
+     * @OA\MediaType(
+     * mediaType="application/json",
+     * @OA\Schema(
+     * @OA\Property(
+     * property="links",
+     * type="array",
+     * @OA\Items(type="string", format="url", example="https://example.com/my-portfolio/project1"),
+     * description="An array of valid URLs representing the user's portfolio links."
+     * ),
+     * example={
+     * "links": {
+     * "https://example.com/portfolio-v1",
+     * "https://another.site/my-work-v2"
+     * }
+     * }
+     * )
+     * )
+     * ),
+     * @OA\Response(
+     * response=200,
+     * description="Portfolio links updated successfully",
+     * @OA\JsonContent(
+     * @OA\Property(property="success", type="string", example="Portfolio links updated successfully."),
+     * )
+     * ),
+     * @OA\Response(
+     * response=400,
+     * description="Bad Request: Portfolio links can only be updated for users with the 'provider' role.",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=401,
+     * description="Unauthenticated",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=403,
+     * description="Forbidden: You are not authorized to update portfolio links for this user.",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=404,
+     * description="Not Found: User not found.",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=422,
+     * description="Validation Error: Invalid input for portfolio links.",
+     * @OA\JsonContent(
+     * @OA\Property(property="message", type="string", example="The given data was invalid."),
+     * @OA\Property(property="errors", type="object",
+     * @OA\AdditionalProperties(
+     * type="array",
+     * @OA\Items(type="string", example="The links.0 field must be a valid URL.")
+     * )
+     * )
+     * )
+     * ),
+     * @OA\Response(
+     * response=500,
+     * description="Internal Server Error",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * )
+     * )
+     */
+    public function updatePortfolioLinks(UpdatePortfolioLinksRequest $request, string $user): JsonResponse
+    {
+        $checkAuthUser = $this->ensureAuthenticated();
+
+        if ($checkAuthUser) {
+            return $checkAuthUser;
+        }
+
+        try {
+            $foundUser = User::where('id', $user)
+                            ->orWhere('slug', $user)
+                            ->first();
+
+            if (!$foundUser) {
+                return response()->json([
+                    'error' => 'User not found'
+                ], 404);
+            }
+
+            if (
+                (Auth::user() !== $foundUser && !Auth::user()->isSuperAdmin()) ||
+                ($foundUser->role !== 'provider')
+            ) {
+                return response()->json([
+                    "errors" => "You are not authorized to update portfolio links for this user."
+                ], 403);
+            }
+            
+            $validated = $request->validated();
+            $newLinks = collect($validated['links'])->unique()->values();
+
+            $existingLinks = $foundUser->portfolioLinks->pluck('link');
+            $linksToDelete = $existingLinks->diff($newLinks);
+            $linksToAdd = $newLinks->diff($existingLinks);
+
+            if ($linksToDelete->isNotEmpty()) {
+                $foundUser->portfolioLinks()->whereIn('link', $linksToDelete)->delete();
+            }
+
+            $portfolioLinksData = [];
+            foreach ($linksToAdd as $link) {
+                $portfolioLinksData[] = ['link' => $link];
+            }
+
+            if (!empty($portfolioLinksData)) {
+                $foundUser->portfolioLinks()->createMany($portfolioLinksData);
+            }
+
+            return response()->json([
+                "success" => "Portfolio links updated successfully.",
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error($e);
+            return response()->json([
+                "error" => "An unexpected error occurred: " . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * @OA\Delete(
      * path="/api/users/{user}",
      * operationId="deleteUser",
@@ -746,8 +924,8 @@ class UserController extends Controller
 
         try {
             $foundUser = User::where('id', $user)
-            ->orWhere('slug', $user)
-            ->first();
+                ->orWhere('slug', $user)
+                ->first();
 
             if (!$foundUser) {
                 return response()->json([
@@ -767,6 +945,7 @@ class UserController extends Controller
 
             return response()->json(null, 204);
         } catch (\Exception $e) {
+            Log::error($e);
             return response()->json([
                 "error" => $e->getMessage()
             ], 500);

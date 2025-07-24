@@ -142,4 +142,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(Problem::class, 'company_id');
     }
+
+    // Inside the User model, after other relationships or at the end
+    /**
+     * Get the portfolio links for the user (if they are a provider).
+     */
+    public function portfolioLinks()
+    {
+        return $this->hasMany(PortfolioLink::class, 'provider_id');
+    }
 }

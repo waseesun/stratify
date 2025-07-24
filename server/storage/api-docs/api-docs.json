@@ -547,7 +547,7 @@
                     "Users"
                 ],
                 "summary": "Get user details by ID or slug",
-                "description": "Retrieves the details of a specific user by their ID or slug. A user can view their own profile, or an admin can view any user's profile.",
+                "description": "Retrieves the details of a specific user by their ID or slug. A user can view their own profile, or an admin can view any user's profile. Includes portfolio links if the user is a 'provider'.",
                 "operationId": "getUserByIdOrSlug",
                 "parameters": [
                     {
@@ -566,7 +566,24 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User"
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/User"
+                                        },
+                                        {
+                                            "properties": {
+                                                "portfolio_links": {
+                                                    "description": "List of portfolio links for 'provider' users.",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/PortfolioLink"
+                                                    },
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -796,9 +813,6 @@
                                         "success": {
                                             "type": "string",
                                             "example": "User updated successfully."
-                                        },
-                                        "user": {
-                                            "$ref": "#/components/schemas/User"
                                         }
                                     },
                                     "type": "object"
@@ -1547,6 +1561,156 @@
                     }
                 ]
             }
+        },
+        "/api/users/{user}/portfolio-links": {
+            "patch": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update a user's portfolio links",
+                "description": "Updates the portfolio links for a specific user. Only the user themselves or a super admin can update these links. The target user must have the 'provider' role.",
+                "operationId": "updatePortfolioLinks",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "description": "ID of the user whose portfolio links are to be updated.",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Array of portfolio links (URLs) to associate with the user. Existing links not in this array will be deleted, and new ones will be added.",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "links": {
+                                        "description": "An array of valid URLs representing the user's portfolio links.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "url",
+                                            "example": "https://example.com/my-portfolio/project1"
+                                        }
+                                    }
+                                },
+                                "type": "object",
+                                "example": {
+                                    "links": [
+                                        "https://example.com/portfolio-v1",
+                                        "https://another.site/my-work-v2"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Portfolio links updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "string",
+                                            "example": "Portfolio links updated successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request: Portfolio links can only be updated for users with the 'provider' role.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden: You are not authorized to update portfolio links for this user.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: User not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error: Invalid input for portfolio links.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The given data was invalid."
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string",
+                                                    "example": "The links.0 field must be a valid URL."
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -1690,6 +1854,40 @@
                     "meta": {
                         "description": "Pagination meta information",
                         "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "PortfolioLink": {
+                "title": "PortfolioLink",
+                "description": "Portfolio link model",
+                "properties": {
+                    "id": {
+                        "description": "ID of the portfolio link",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "provider_id": {
+                        "description": "ID of the user (provider) who owns this link",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "link": {
+                        "description": "The URL of the portfolio link",
+                        "type": "string",
+                        "format": "url"
+                    },
+                    "created_at": {
+                        "description": "Timestamp when the portfolio link was created",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Timestamp when the portfolio link was last updated",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
                     }
                 },
                 "type": "object"

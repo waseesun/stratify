@@ -31,6 +31,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/users/{user}', [UserController::class, 'update'])
         ->name('api.updateUser');
 
+    Route::patch('/users/{user}/portfolio-links', [UserController::class, 'updatePortfolioLinks'])
+        ->name('api.updatePortfolioLinks');
+
     Route::delete('/users/{user}', [UserController::class, 'destroy'])
         ->name('api.deleteUser');
 

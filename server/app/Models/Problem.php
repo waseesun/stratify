@@ -50,4 +50,13 @@ class Problem extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    // Inside the Problem model, after other relationships or at the end
+    /**
+     * Get the skillsets for the problem.
+     */
+    public function skillsets()
+    {
+        return $this->hasMany(ProblemSkillset::class);
+    }
 }

@@ -9,6 +9,7 @@ use App\Http\Requests\Auth\AuthRequest;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Laravel\Sanctum\PersonalAccessToken;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -53,23 +54,30 @@ class AuthController extends Controller
     public function login(AuthRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        $user = User::where('email', $validated['email'])->first();
-
-        // Check password
-        if (!$user || !Hash::check($validated['password'], $user->password) || !$user->is_active) {
+        try {
+            $user = User::where('email', $validated['email'])->first();
+    
+            // Check password
+            if (!$user || !Hash::check($validated['password'], $user->password) || !$user->is_active) {
+                return response()->json([
+                    'errors' => 'Credentials are incorrect.'
+                ], 422);
+            }
+    
+            // Create token with 24-hour expiry
+            $token = $user->createToken('auth_token', ['*'], now()->addHours(24))->plainTextToken;
+    
             return response()->json([
-                'errors' => 'Credentials are incorrect.'
-            ], 422);
+                'token' => $token,
+                'token_type' => 'Bearer',
+                'expires_at' => now()->addHours(24)->toDateTimeString(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error($e);
+            return response()->json([
+                'errors' => 'An unexpected error occurred.'
+            ], 500);
         }
-
-        // Create token with 24-hour expiry
-        $token = $user->createToken('auth_token', ['*'], now()->addHours(24))->plainTextToken;
-
-        return response()->json([
-            'token' => $token,
-            'token_type' => 'Bearer',
-            'expires_at' => now()->addHours(24)->toDateTimeString(),
-        ]);
     }
 
     /**
@@ -101,11 +109,18 @@ class AuthController extends Controller
      */
     public function logout(): JsonResponse
     {
-        /** @var PersonalAccessToken $accessToken */
-        Auth::user()->currentAccessToken()->delete();
+        try {
+            /** @var PersonalAccessToken $accessToken */
+            Auth::user()->currentAccessToken()->delete();
 
-        return response()->json([
-            'success' => 'Successfully logged out.',
+            return response()->json([
+                'success' => 'Successfully logged out.',
         ]);
+        } catch (\Exception $e) {
+            Log::error($e);
+            return response()->json([
+                'errors' => 'An unexpected error occurred.'
+            ], 500);
+        }
     }
 }

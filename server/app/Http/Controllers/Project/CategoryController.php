@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Project;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Project\CategoryRequest;
 use App\Models\Category;
-use Exception;
 use OpenApi\Annotations as OA;
 
 /**
@@ -70,7 +70,8 @@ class CategoryController extends Controller
         try {
             $categories = Category::all();
             return response()->json($categories);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
+            Log::error($e);
             return response()->json([
                 'error' => $e->getMessage()
             ], 500);
@@ -119,7 +120,8 @@ class CategoryController extends Controller
         try {
             $category = Category::find($category);
             return response()->json($category);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
+            Log::error($e);
             return response()->json([
                 'error' => $e->getMessage()
             ], 500);
@@ -179,7 +181,8 @@ class CategoryController extends Controller
         try {
             $category = Category::create($validated);
             return response()->json($category);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
+            Log::error($e);
             return response()->json([
                 'error' => $e->getMessage()
             ], 500);
@@ -242,7 +245,8 @@ class CategoryController extends Controller
             $category = Category::find($category);
             $category->delete();
             return response()->json(null, 204);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
+            Log::error($e);
             return response()->json([
                 'error' => $e->getMessage()
             ], 500);
