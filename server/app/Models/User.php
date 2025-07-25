@@ -106,9 +106,49 @@ class User extends Authenticatable
         }
     }
 
+    /**
+     * Get the options for generating the slug.
+     */
     public function getSlugOptions(): SlugOptions {
         return SlugOptions::create()
             ->generateSlugsFrom('email')
             ->saveSlugsTo('slug');
+    }
+
+    public function isCompany(): bool
+    {
+        return $this->role === 'company';
+    }
+
+    public function isProvider(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->is_admin;
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->is_super_admin;
+    }
+
+    /**
+     * Get the problems posted by this user (if they are a company).
+     */
+    public function problems()
+    {
+        return $this->hasMany(Problem::class, 'company_id');
+    }
+
+    // Inside the User model, after other relationships or at the end
+    /**
+     * Get the portfolio links for the user (if they are a provider).
+     */
+    public function portfolioLinks()
+    {
+        return $this->hasMany(PortfolioLink::class, 'provider_id');
     }
 }
