@@ -19,8 +19,8 @@ class IsCompanyUser implements ValidationRule
     {
         $user = User::find($value);
 
-        if (!$user || $user->role !== 'company') {
-            $fail("The selected :attribute must belong to a user with the 'company' role.");
+        if (!$user || !$user->isCompany()) {
+            $fail("The user must belong to the 'company' role.");
         }
     }
 }
