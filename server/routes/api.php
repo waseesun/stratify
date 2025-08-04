@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\Project\CategoryController;
+use App\Http\Controllers\Project\ProblemController;
 
 
 Route::post('/login', [AuthController::class, 'login'])
@@ -48,4 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])
         ->name('api.deleteCategory');
+
+    Route::post('/problems', [ProblemController::class, 'create'])
+        ->name('api.createProblem');
     });

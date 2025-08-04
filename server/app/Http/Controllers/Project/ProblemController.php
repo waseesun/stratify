@@ -17,7 +17,7 @@ use App\Http\OpenApi\Annotations as OA;
  * title="Problem with Skills",
  * description="Problem model with associated skills",
  * allOf={
- * @OA\Schema(ref="#/components/schemas/Problem"), // Reference your existing Problem schema
+ * @OA\Schema(ref="#/components/schemas/Problem"),
  * @OA\Schema(
  * @OA\Property(
  * property="skillsets",

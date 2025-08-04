@@ -581,7 +581,7 @@ class UserController extends Controller
             User::create($validated);
 
             return response()->json([
-                "success" => "User created successfully. Please verify your email to activate your account.",
+                "success" => "User created successfully.",
             ], 201);
         } catch (\Exception $e) {
             Log::error($e);

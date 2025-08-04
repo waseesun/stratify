@@ -462,6 +462,179 @@
                 ]
             }
         },
+        "/api/problems": {
+            "post": {
+                "tags": [
+                    "Problems"
+                ],
+                "summary": "Register a new problem with associated skills",
+                "description": "Creates a new problem entry, including its title, description, budget, timeline, and a list of required skills. The authenticated user must be a 'company' role.",
+                "operationId": "registerProblem",
+                "requestBody": {
+                    "description": "Problem data including associated skills.",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "company_id",
+                                    "category_id",
+                                    "title",
+                                    "budget",
+                                    "timeline_value",
+                                    "timeline_unit",
+                                    "skills"
+                                ],
+                                "properties": {
+                                    "company_id": {
+                                        "description": "ID of the company user creating the problem.",
+                                        "type": "integer",
+                                        "format": "int64"
+                                    },
+                                    "category_id": {
+                                        "description": "ID of the problem's category.",
+                                        "type": "integer",
+                                        "format": "int64"
+                                    },
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Develop a Mobile E-commerce App"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "We need an iOS and Android e-commerce application with payment gateway integration.",
+                                        "nullable": true
+                                    },
+                                    "budget": {
+                                        "description": "Budget for the problem in base currency units.",
+                                        "type": "integer",
+                                        "example": 25000
+                                    },
+                                    "timeline_value": {
+                                        "description": "Numerical value for the timeline (e.g., 3 for '3 months').",
+                                        "type": "integer",
+                                        "example": 3
+                                    },
+                                    "timeline_unit": {
+                                        "description": "Unit for the timeline value.",
+                                        "type": "string",
+                                        "enum": [
+                                            "day",
+                                            "week",
+                                            "month",
+                                            "year"
+                                        ],
+                                        "example": "month"
+                                    },
+                                    "status": {
+                                        "description": "Current status of the problem (defaults to 'open').",
+                                        "type": "string",
+                                        "enum": [
+                                            "open",
+                                            "sold",
+                                            "closed",
+                                            "cancelled"
+                                        ],
+                                        "example": "open",
+                                        "nullable": true
+                                    },
+                                    "skills": {
+                                        "description": "Array of required skills for the problem.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "example": "React Native"
+                                        }
+                                    }
+                                },
+                                "type": "object",
+                                "example": {
+                                    "company_id": 1,
+                                    "category_id": 1,
+                                    "title": "Develop a Mobile E-commerce App",
+                                    "description": "We need an iOS and Android e-commerce application with payment gateway integration.",
+                                    "budget": 25000,
+                                    "timeline_value": 3,
+                                    "timeline_unit": "month",
+                                    "skills": [
+                                        "React Native",
+                                        "Node.js",
+                                        "MongoDB",
+                                        "UI/UX Design"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Problem registered successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "string",
+                                            "example": "Problem registered successfully."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/ProblemWithSkills"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden: You are not authorized to register a problem (e.g., not a company user).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error: Invalid input for problem or skills.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/users": {
             "get": {
                 "tags": [
@@ -1751,6 +1924,142 @@
                 },
                 "type": "object"
             },
+            "ProblemWithSkills": {
+                "title": "Problem with Skills",
+                "description": "Problem model with associated skills",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Problem"
+                    },
+                    {
+                        "properties": {
+                            "skillsets": {
+                                "description": "List of skills required for the problem.",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/ProblemSkillset"
+                                }
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
+            },
+            "Problem": {
+                "title": "Problem",
+                "description": "Problem model",
+                "properties": {
+                    "id": {
+                        "description": "Problem ID",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "company_id": {
+                        "description": "ID of the company that posted the problem",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "category_id": {
+                        "description": "ID of the problem's category",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "title": {
+                        "description": "Title of the problem",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "Full description of the problem",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "budget": {
+                        "description": "Budget for the problem",
+                        "type": "integer"
+                    },
+                    "timeline_value": {
+                        "description": "Numerical value for the timeline",
+                        "type": "integer"
+                    },
+                    "timeline_unit": {
+                        "description": "Unit for the timeline value",
+                        "type": "string",
+                        "enum": [
+                            "day",
+                            "week",
+                            "month",
+                            "year"
+                        ]
+                    },
+                    "status": {
+                        "description": "Current status of the problem",
+                        "type": "string",
+                        "enum": [
+                            "open",
+                            "sold",
+                            "closed",
+                            "cancelled"
+                        ]
+                    },
+                    "created_at": {
+                        "description": "Timestamp when the problem was created",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "description": "Timestamp when the problem was last updated",
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object",
+                "example": {
+                    "id": 1,
+                    "company_id": 1,
+                    "category_id": 1,
+                    "title": "Develop a Mobile E-commerce App",
+                    "description": "We need an iOS and Android e-commerce application with payment gateway integration.",
+                    "budget": 25000,
+                    "timeline_value": 3,
+                    "timeline_unit": "month",
+                    "status": "open",
+                    "created_at": "2023-07-25T10:00:00.000000Z",
+                    "updated_at": "2023-07-25T10:00:00.000000Z"
+                }
+            },
+            "ProblemSkillset": {
+                "title": "ProblemSkillset",
+                "description": "Skill required for a problem",
+                "properties": {
+                    "id": {
+                        "description": "Skillset ID",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "problem_id": {
+                        "description": "ID of the associated problem",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "skill": {
+                        "description": "The required skill (e.g., 'React Native')",
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "description": "Timestamp when the skill was added",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "description": "Timestamp when the skill was last updated",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
             "User": {
                 "title": "User",
                 "description": "User model",
@@ -1922,6 +2231,10 @@
         {
             "name": "Categories",
             "description": "Categories"
+        },
+        {
+            "name": "Problems",
+            "description": "Problems"
         }
     ]
 }
