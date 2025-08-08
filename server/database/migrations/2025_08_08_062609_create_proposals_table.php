@@ -11,10 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('problem_skillsets', function (Blueprint $table) {
+        Schema::create('proposals', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('provider_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('problem_id')->constrained('problems')->onDelete('cascade');
-            $table->string('skill');
+            $table->string('title');
+            $table->text('description');
+            $table->enum('status', ['submitted', 'under_review', 'accepted', 'rejected'])->default('submitted');
+            $table->timestamps();
         });
     }
 
@@ -23,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('problem_skillsets');
+        Schema::dropIfExists('proposals');
     }
 };

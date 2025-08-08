@@ -59,4 +59,9 @@ class Problem extends Model
     {
         return $this->hasMany(ProblemSkillset::class);
     }
+
+    public function proposals()
+    {
+        return $this->hasMany(Proposal::class);
+    }
 }

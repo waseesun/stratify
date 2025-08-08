@@ -143,7 +143,6 @@ class User extends Authenticatable
         return $this->hasMany(Problem::class, 'company_id');
     }
 
-    // Inside the User model, after other relationships or at the end
     /**
      * Get the portfolio links for the user (if they are a provider).
      */
@@ -158,5 +157,13 @@ class User extends Authenticatable
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'user_categories');
+    }
+
+    /**
+     * Get the proposals made by this user (if they are a provider).
+     */
+    public function proposals()
+    {
+        return $this->hasMany(Proposal::class, 'provider_id');
     }
 }
