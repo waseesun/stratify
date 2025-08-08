@@ -3,6 +3,7 @@
 namespace App\Http\Requests\User;
 
 use App\Http\Requests\BaseRequest;
+use App\Rules\StrongPassword;
 use Illuminate\Validation\Rule;
 
 class UpdateUserRequest extends BaseRequest
@@ -30,6 +31,7 @@ class UpdateUserRequest extends BaseRequest
             'username' => ['nullable', 'string', 'max:255', Rule::unique('users', 'username')->ignore($userId)],
             'address' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed', new StrongPassword()],
             'image_url' => [
                 'nullable',
                 'image',
@@ -44,6 +46,7 @@ class UpdateUserRequest extends BaseRequest
     {
         return [
             'username.unique' => 'The username is already taken by another user.',
+            'password.confirmed' => 'The password confirmation does not match.',
             'image_url.image' => 'The file must be an image.',
             'image_url.max' => 'The image may not be greater than 2MB.',
             'image_url.mimes' => 'The image must be a file of type: jpeg, png, jpg.',

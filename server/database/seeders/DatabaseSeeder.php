@@ -8,6 +8,8 @@ use App\Models\Category;
 use App\Models\Problem;
 use App\Models\PortfolioLink;
 use App\Models\ProblemSkillset;
+use App\Models\Proposal;
+use App\Models\ProposalDocs;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -22,17 +24,26 @@ class DatabaseSeeder extends Seeder
         User::factory()->superAdmin()->create();
         
         User::factory()->company()->count(4)->create();
-        
-        User::factory()->provider()->count(4)->create();
-
+        $providers = User::factory()->provider()->count(4)->create();
         User::factory()->inactive()->create();
 
-        Category::factory()->count(5)->create();
+        $categories = Category::factory()->count(5)->create();
 
-        Problem::factory()->count(10)->create();
+        $providers->each(function (User $user) use ($categories) {
+            $user->categories()->attach(
+                $categories->random(rand(1, 3))->pluck('id')->toArray()
+            );
+        });
 
         PortfolioLink::factory()->count(15)->create();
 
+        Problem::factory()->count(10)->create();
+
         ProblemSkillset::factory()->count(20)->create();
+
+        Proposal::factory()->count(15)->create();
+
+        ProposalDocs::factory()->count(30)->create();
+
     }
 }

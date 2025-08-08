@@ -6,7 +6,6 @@ use Illuminate\Validation\Rule;
 use App\Http\Requests\BaseRequest;
 use App\Rules\StrongPassword;
 use \Illuminate\Validation\Validator;
-use Illuminate\Support\Facades\Auth;
 
 class RegisterUserRequest extends BaseRequest
 {

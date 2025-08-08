@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('problem_skillsets', function (Blueprint $table) {
+        Schema::create('user_categories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('problem_id')->constrained('problems')->onDelete('cascade');
-            $table->string('skill');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
         });
     }
 
@@ -23,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('problem_skillsets');
+        Schema::dropIfExists('user_categories');
     }
 };
