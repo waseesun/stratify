@@ -151,4 +151,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(PortfolioLink::class, 'provider_id');
     }
+
+    /**
+     * The categories that belong to the user.
+     */
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class, 'user_categories');
+    }
 }

@@ -22,12 +22,16 @@ class DatabaseSeeder extends Seeder
         User::factory()->superAdmin()->create();
         
         User::factory()->company()->count(4)->create();
-        
-        User::factory()->provider()->count(4)->create();
-
+        $providers = User::factory()->provider()->count(4)->create();
         User::factory()->inactive()->create();
 
-        Category::factory()->count(5)->create();
+        $categories = Category::factory()->count(5)->create();
+
+        $providers->each(function (User $user) use ($categories) {
+            $user->categories()->attach(
+                $categories->random(rand(1, 3))->pluck('id')->toArray()
+            );
+        });
 
         Problem::factory()->count(10)->create();
 

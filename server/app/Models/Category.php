@@ -23,4 +23,12 @@ class Category extends Model
     {
         return $this->hasMany(Problem::class);
     }
+    
+    /**
+     * The users that belong to the category.
+     */
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'user_categories');
+    }
 }
