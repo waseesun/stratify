@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('username')->unique();
             $table->string('address')->nullable();
             $table->string('password');
-            $table->enum('role', ['admin', 'company', 'provider'])->default('user');
+            $table->enum('role', ['admin', 'company', 'provider'])->default('provider');
             $table->text('description')->nullable();
             $table->string('image_url')->nullable();
             $table->boolean('is_active')->default(true);

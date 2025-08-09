@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->integer('budget');
             $table->integer('timeline_value');
-            $table->enum('timeline_unit', ['day', 'week', 'month', 'year']);
+            $table->enum('timeline_unit', ['day', 'week', 'month', 'year'])->default('day');
             $table->enum('status', ['open', 'sold', 'closed', 'cancelled'])->default('open');
             $table->timestamps();
         });
