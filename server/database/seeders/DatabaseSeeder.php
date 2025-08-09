@@ -10,6 +10,7 @@ use App\Models\PortfolioLink;
 use App\Models\ProblemSkillset;
 use App\Models\Proposal;
 use App\Models\ProposalDocs;
+use App\Models\Project;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -45,5 +46,6 @@ class DatabaseSeeder extends Seeder
 
         ProposalDocs::factory()->count(30)->create();
 
+        Project::factory()->count(5)->create();
     }
 }

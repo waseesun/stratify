@@ -11,10 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('proposal_docs', function (Blueprint $table) {
+        Schema::create('projects', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('problem_id')->constrained('problems')->onDelete('cascade');
             $table->foreignId('proposal_id')->constrained('proposals')->onDelete('cascade');
-            $table->string('file_url');
+            $table->integer('fee');
+            $table->enum('status', ['in_progress', 'completed', 'cancelled'])->default('in_progress');
+            $table->date('start_date');
+            $table->date('end_date');
+            $table->timestamps();
         });
     }
 
@@ -23,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('proposal_docs');
+        Schema::dropIfExists('projects');
     }
 };
