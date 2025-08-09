@@ -19,9 +19,6 @@ return new class extends Migration
             $table->text('comment');
             $table->timestamps();
         });
-
-        // Add a CHECK constraint to ensure the rating is between 1 and 5
-        DB::statement('ALTER TABLE reviews ADD CONSTRAINT reviews_rating_check CHECK (rating >= 1 AND rating <= 5)');
     }
 
     /**
