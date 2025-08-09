@@ -39,4 +39,12 @@ class Project extends Model
     {
         return $this->belongsTo(Proposal::class);
     }
+
+    /**
+     * Get the transactions for the project.
+     */
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
 }

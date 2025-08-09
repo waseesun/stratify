@@ -11,6 +11,7 @@ use App\Models\ProblemSkillset;
 use App\Models\Proposal;
 use App\Models\ProposalDocs;
 use App\Models\Project;
+use App\Models\Transaction;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -47,5 +48,7 @@ class DatabaseSeeder extends Seeder
         ProposalDocs::factory()->count(30)->create();
 
         Project::factory()->count(5)->create();
+
+        Transaction::factory()->count(10)->create();
     }
 }

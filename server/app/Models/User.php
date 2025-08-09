@@ -166,4 +166,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(Proposal::class, 'provider_id');
     }
+
+    /**
+     * Get the transactions made by this user as a provider.
+     */
+    public function providerTransactions()
+    {
+        return $this->hasMany(Transaction::class, 'provider_id');
+    }
+
+    /**
+     * Get the transactions made by this user as a company.
+     */
+    public function companyTransactions()
+    {
+        return $this->hasMany(Transaction::class, 'company_id');
+    }
 }
