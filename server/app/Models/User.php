@@ -182,4 +182,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(Transaction::class, 'company_id');
     }
+
+    /**
+     * Get the reviews this user has left.
+     */
+    public function reviewsGiven()
+    {
+        return $this->hasMany(Review::class, 'reviewer_id');
+    }
+
+    /**
+     * Get the reviews this user has received.
+     */
+    public function reviewsReceived()
+    {
+        return $this->hasMany(Review::class, 'reviewee_id');
+    }
 }
