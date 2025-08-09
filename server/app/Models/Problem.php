@@ -51,7 +51,6 @@ class Problem extends Model
         return $this->belongsTo(Category::class);
     }
 
-    // Inside the Problem model, after other relationships or at the end
     /**
      * Get the skillsets for the problem.
      */
@@ -60,8 +59,19 @@ class Problem extends Model
         return $this->hasMany(ProblemSkillset::class);
     }
 
+    /**
+     * Get the proposals for the problem.
+     */
     public function proposals()
     {
         return $this->hasMany(Proposal::class);
+    }
+
+    /**
+     * Get the project associated with the problem.
+     */
+    public function project()
+    {
+        return $this->hasOne(Project::class);
     }
 }

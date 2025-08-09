@@ -166,4 +166,44 @@ class User extends Authenticatable
     {
         return $this->hasMany(Proposal::class, 'provider_id');
     }
+
+    /**
+     * Get the transactions made by this user as a provider.
+     */
+    public function providerTransactions()
+    {
+        return $this->hasMany(Transaction::class, 'provider_id');
+    }
+
+    /**
+     * Get the transactions made by this user as a company.
+     */
+    public function companyTransactions()
+    {
+        return $this->hasMany(Transaction::class, 'company_id');
+    }
+
+    /**
+     * Get the reviews this user has left.
+     */
+    public function reviewsGiven()
+    {
+        return $this->hasMany(Review::class, 'reviewer_id');
+    }
+
+    /**
+     * Get the reviews this user has received.
+     */
+    public function reviewsReceived()
+    {
+        return $this->hasMany(Review::class, 'reviewee_id');
+    }
+
+    /**
+     * Get the notifications for this user.
+     */
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
 }

@@ -38,8 +38,19 @@ class Proposal extends Model
         return $this->belongsTo(Problem::class);
     }
 
+    /**
+     * Get the docs for the proposal.
+     */
     public function docs()
     {
         return $this->hasMany(ProposalDocs::class);
+    }
+    
+    /**
+     * Get the project associated with the problem.
+     */
+    public function project()
+    {
+        return $this->hasOne(Project::class);
     }
 }
