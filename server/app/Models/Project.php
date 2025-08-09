@@ -9,6 +9,11 @@ class Project extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'problem_id',
         'proposal_id',
@@ -18,6 +23,11 @@ class Project extends Model
         'end_date',
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected $casts = [
         'fee' => 'integer',
         'start_date' => 'date',

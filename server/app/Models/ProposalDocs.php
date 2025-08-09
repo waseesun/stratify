@@ -22,6 +22,9 @@ class ProposalDocs extends Model
         'file_url',
     ];
 
+    /**
+     * Get the proposal that owns the document.
+     */
     public function proposal()
     {
         return $this->belongsTo(Proposal::class);
