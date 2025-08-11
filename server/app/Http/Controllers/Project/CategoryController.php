@@ -10,27 +10,6 @@ use App\Http\Requests\Project\CategoryRequest;
 use App\Models\Category;
 use OpenApi\Annotations as OA;
 
-/**
- * @OA\Schema(
- * schema="Category",
- * title="Category",
- * description="Category model",
- * @OA\Property(property="id", type="integer", format="int64", description="Category ID"),
- * @OA\Property(property="name", type="string", description="Category name", example="Electronics"),
- * example={
- * "id": 1,
- * "name": "Electronics"
- * }
- * )
- *
- * @OA\Schema(
- * schema="CategoryRequest",
- * title="Category Request",
- * description="Request body for creating or updating a category",
- * @OA\Property(property="name", type="string", description="Name of the category", example="Books"),
- * required={"name"}
- * )
- */
 class CategoryController extends Controller
 {
     public function __construct() {

@@ -11,65 +11,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
 use App\Http\OpenApi\Annotations as OA;
 
-/**
- * @OA\Schema(
- * schema="ProblemWithSkills",
- * title="Problem with Skills",
- * description="Problem model with associated skills",
- * allOf={
- * @OA\Schema(ref="#/components/schemas/Problem"),
- * @OA\Schema(
- * @OA\Property(
- * property="skillsets",
- * type="array",
- * @OA\Items(ref="#/components/schemas/ProblemSkillset"),
- * description="List of skills required for the problem."
- * )
- * )
- * }
- * )
- *
- * @OA\Schema(
- * schema="Problem",
- * title="Problem",
- * description="Problem model",
- * @OA\Property(property="id", type="integer", format="int64", description="Problem ID"),
- * @OA\Property(property="company_id", type="integer", format="int64", description="ID of the company that posted the problem"),
- * @OA\Property(property="category_id", type="integer", format="int64", description="ID of the problem's category"),
- * @OA\Property(property="title", type="string", description="Title of the problem"),
- * @OA\Property(property="description", type="string", nullable=true, description="Full description of the problem"),
- * @OA\Property(property="budget", type="integer", description="Budget for the problem"),
- * @OA\Property(property="timeline_value", type="integer", description="Numerical value for the timeline"),
- * @OA\Property(property="timeline_unit", type="string", enum={"day", "week", "month", "year"}, description="Unit for the timeline value"),
- * @OA\Property(property="status", type="string", enum={"open", "sold", "closed", "cancelled"}, description="Current status of the problem"),
- * @OA\Property(property="created_at", type="string", format="date-time", description="Timestamp when the problem was created"),
- * @OA\Property(property="updated_at", type="string", format="date-time", description="Timestamp when the problem was last updated"),
- * example={
- * "id": 1,
- * "company_id": 1,
- * "category_id": 1,
- * "title": "Develop a Mobile E-commerce App",
- * "description": "We need an iOS and Android e-commerce application with payment gateway integration.",
- * "budget": 25000,
- * "timeline_value": 3,
- * "timeline_unit": "month",
- * "status": "open",
- * "created_at": "2023-07-25T10:00:00.000000Z",
- * "updated_at": "2023-07-25T10:00:00.000000Z"
- * }
- * )
- *
- * @OA\Schema(
- * schema="ProblemSkillset",
- * title="ProblemSkillset",
- * description="Skill required for a problem",
- * @OA\Property(property="id", type="integer", format="int64", description="Skillset ID"),
- * @OA\Property(property="problem_id", type="integer", format="int64", description="ID of the associated problem"),
- * @OA\Property(property="skill", type="string", description="The required skill (e.g., 'React Native')"),
- * @OA\Property(property="created_at", type="string", format="date-time", nullable=true, description="Timestamp when the skill was added"),
- * @OA\Property(property="updated_at", type="string", format="date-time", nullable=true, description="Timestamp when the skill was last updated")
- * )
- */
 class ProblemController extends Controller
 {
     public function __construct() {
