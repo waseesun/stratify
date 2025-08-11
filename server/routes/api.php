@@ -5,7 +5,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\Project\CategoryController;
 use App\Http\Controllers\Project\ProblemController;
-
+use App\Http\Controllers\Project\ProposalController;
 
 Route::post('/login', [AuthController::class, 'login'])
     ->name('api.login');
@@ -53,6 +53,33 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])
         ->name('api.deleteCategory');
 
+    Route::get('/problems', [ProblemController::class, 'index'])
+        ->name('api.getProblems');
+
+    Route::get('/problems/{problem}', [ProblemController::class, 'show'])
+        ->name('api.getProblem');
+
     Route::post('/problems', [ProblemController::class, 'create'])
         ->name('api.createProblem');
+
+    Route::patch('/problems/{problem}', [ProblemController::class, 'update'])
+        ->name('api.updateProblem');
+
+    Route::delete('/problems/{problem}', [ProblemController::class, 'destroy'])
+        ->name('api.deleteProblem');
+
+    Route::get('/proposals', [ProposalController::class, 'index'])
+        ->name('api.getProposals');
+
+    Route::get('/proposals/{proposal}', [ProposalController::class, 'show'])
+        ->name('api.getProposal');
+
+    Route::post('/proposals', [ProposalController::class, 'create'])
+        ->name('api.createProposal');
+
+    Route::patch('/proposals/{proposal}', [ProposalController::class, 'update'])
+        ->name('api.updateProposal');
+
+    Route::delete('/proposals/{proposal}', [ProposalController::class, 'destroy'])
+        ->name('api.deleteProposal');
     });

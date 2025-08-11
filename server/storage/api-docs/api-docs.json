@@ -35,12 +35,12 @@
                                     "email": {
                                         "type": "string",
                                         "format": "email",
-                                        "example": "john.doe@example.com"
+                                        "example": "sun@example.com"
                                     },
                                     "password": {
                                         "type": "string",
                                         "format": "password",
-                                        "example": "secret123"
+                                        "example": "Laravel@123"
                                     }
                                 },
                                 "type": "object"
@@ -463,6 +463,63 @@
             }
         },
         "/api/problems": {
+            "get": {
+                "tags": [
+                    "Problems"
+                ],
+                "summary": "Get all problems",
+                "description": "Retrieves a paginated list of all problems. This endpoint is accessible to authenticated users.",
+                "operationId": "getAllProblems",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number for pagination",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemPagination"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
             "post": {
                 "tags": [
                     "Problems"
@@ -526,43 +583,32 @@
                                         ],
                                         "example": "month"
                                     },
-                                    "status": {
-                                        "description": "Current status of the problem (defaults to 'open').",
-                                        "type": "string",
-                                        "enum": [
-                                            "open",
-                                            "sold",
-                                            "closed",
-                                            "cancelled"
-                                        ],
-                                        "example": "open",
-                                        "nullable": true
-                                    },
                                     "skills": {
                                         "description": "Array of required skills for the problem.",
                                         "type": "array",
                                         "items": {
                                             "type": "string",
                                             "example": "React Native"
-                                        }
+                                        },
+                                        "minItems": 1
                                     }
                                 },
-                                "type": "object",
-                                "example": {
-                                    "company_id": 1,
-                                    "category_id": 1,
-                                    "title": "Develop a Mobile E-commerce App",
-                                    "description": "We need an iOS and Android e-commerce application with payment gateway integration.",
-                                    "budget": 25000,
-                                    "timeline_value": 3,
-                                    "timeline_unit": "month",
-                                    "skills": [
-                                        "React Native",
-                                        "Node.js",
-                                        "MongoDB",
-                                        "UI/UX Design"
-                                    ]
-                                }
+                                "type": "object"
+                            },
+                            "example": {
+                                "company_id": 1,
+                                "category_id": 1,
+                                "title": "Develop a Mobile E-commerce App",
+                                "description": "We need an iOS and Android e-commerce application with payment gateway integration.",
+                                "budget": 25000,
+                                "timeline_value": 3,
+                                "timeline_unit": "month",
+                                "skills": [
+                                    "React Native",
+                                    "Node.js",
+                                    "MongoDB",
+                                    "UI/UX Design"
+                                ]
                             }
                         }
                     }
@@ -635,6 +681,816 @@
                 ]
             }
         },
+        "/api/problems/{problem}": {
+            "get": {
+                "tags": [
+                    "Problems"
+                ],
+                "summary": "Get a single problem by ID",
+                "description": "Retrieves the details of a specific problem, including its skills.",
+                "operationId": "getProblemById",
+                "parameters": [
+                    {
+                        "name": "problem",
+                        "in": "path",
+                        "description": "ID of the problem to retrieve",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemWithSkills"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Problem not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Problems"
+                ],
+                "summary": "Delete a problem",
+                "description": "Deletes a problem and its associated skills. Only the company that owns the problem or a super admin can perform this action.",
+                "operationId": "deleteProblem",
+                "parameters": [
+                    {
+                        "name": "problem",
+                        "in": "path",
+                        "description": "ID of the problem to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Problem deleted successfully (No Content)."
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden: You are not authorized to delete this problem.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Problem not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Problems"
+                ],
+                "summary": "Update an existing problem",
+                "description": "Updates the details of an existing problem and its associated skills. Only the company that owns the problem or a super admin can perform this action.",
+                "operationId": "updateProblem",
+                "parameters": [
+                    {
+                        "name": "problem",
+                        "in": "path",
+                        "description": "ID of the problem to update",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Problem data to update, including skills. All fields are optional except for skills, which should be provided as a complete list to synchronize.",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "category_id": {
+                                        "description": "ID of the problem's category.",
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true
+                                    },
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Updated Mobile App Project",
+                                        "nullable": true
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "New description for the project.",
+                                        "nullable": true
+                                    },
+                                    "budget": {
+                                        "description": "Updated budget.",
+                                        "type": "integer",
+                                        "example": 30000,
+                                        "nullable": true
+                                    },
+                                    "timeline_value": {
+                                        "description": "Updated timeline value.",
+                                        "type": "integer",
+                                        "example": 4,
+                                        "nullable": true
+                                    },
+                                    "timeline_unit": {
+                                        "description": "Updated timeline unit.",
+                                        "type": "string",
+                                        "enum": [
+                                            "day",
+                                            "week",
+                                            "month",
+                                            "year"
+                                        ],
+                                        "example": "month",
+                                        "nullable": true
+                                    },
+                                    "status": {
+                                        "description": "Updated problem status.",
+                                        "type": "string",
+                                        "enum": [
+                                            "open",
+                                            "closed",
+                                            "cancelled"
+                                        ],
+                                        "example": "closed",
+                                        "nullable": true
+                                    },
+                                    "skills": {
+                                        "description": "Array of skills to synchronize. This will replace the old skill list.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "example": "Angular"
+                                        },
+                                        "minItems": 1,
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "title": "Updated Mobile App Project",
+                                "budget": 30000,
+                                "skills": [
+                                    "Angular",
+                                    "Node.js",
+                                    "Express.js"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Problem updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "string",
+                                            "example": "Problem updated successfully."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/ProblemWithSkills"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden: You are not authorized to update this problem.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Problem not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/proposals": {
+            "get": {
+                "tags": [
+                    "Proposals"
+                ],
+                "summary": "Get all proposals",
+                "description": "Retrieves a paginated list of all proposals. Accessible to authenticated users.",
+                "operationId": "getAllProposals",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number for pagination",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProposalPagination"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Proposals"
+                ],
+                "summary": "Create a new proposal",
+                "description": "Allows a 'provider' user to submit a new proposal with associated PDF documents. Supports both JSON (without files) and multipart/form-data (with files).",
+                "operationId": "createProposal",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "provider_id",
+                                    "problem_id",
+                                    "title",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "provider_id": {
+                                        "description": "ID of the provider submitting the proposal",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "problem_id": {
+                                        "description": "ID of the problem the proposal is for",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "title": {
+                                        "description": "Title of the proposal",
+                                        "type": "string",
+                                        "example": "Innovative Solution for E-commerce"
+                                    },
+                                    "description": {
+                                        "description": "Detailed description of the proposal",
+                                        "type": "string",
+                                        "example": "This proposal outlines a full-stack solution using React and Laravel."
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "provider_id",
+                                    "problem_id",
+                                    "title",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "provider_id": {
+                                        "description": "ID of the provider submitting the proposal",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "problem_id": {
+                                        "description": "ID of the problem the proposal is for",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "title": {
+                                        "description": "Title of the proposal",
+                                        "type": "string",
+                                        "example": "Innovative Solution for E-commerce"
+                                    },
+                                    "description": {
+                                        "description": "Detailed description of the proposal",
+                                        "type": "string",
+                                        "example": "This proposal outlines a full-stack solution using React and Laravel."
+                                    },
+                                    "docs[]": {
+                                        "description": "An array of PDF files to be uploaded.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Proposal created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "string",
+                                            "example": "Proposal created successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden: You are not authorized to create a proposal for this provider ID.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/proposals/{proposal}": {
+            "get": {
+                "tags": [
+                    "Proposals"
+                ],
+                "summary": "Get a proposal by ID",
+                "description": "Retrieves the details of a specific proposal, including its associated documents. The user must be the provider who submitted the proposal, the company that posted the problem, or an admin.",
+                "operationId": "getProposalById",
+                "parameters": [
+                    {
+                        "name": "proposal",
+                        "in": "path",
+                        "description": "ID of the proposal",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProposalWithDocs"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Proposal not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Proposals"
+                ],
+                "summary": "Delete a proposal",
+                "description": "Deletes a proposal by ID. The user must be the provider or an admin. This will also delete all associated files from storage.",
+                "operationId": "deleteProposal",
+                "parameters": [
+                    {
+                        "name": "proposal",
+                        "in": "path",
+                        "description": "ID of the proposal to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content: Proposal deleted successfully."
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden: You are not authorized to delete this proposal.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Proposal not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Proposals"
+                ],
+                "summary": "Update an existing proposal",
+                "description": "Updates a proposal by ID. The user must be the provider or an admin. It supports both JSON (without files) and multipart/form-data (with files).",
+                "operationId": "updateProposal",
+                "parameters": [
+                    {
+                        "name": "proposal",
+                        "in": "path",
+                        "description": "ID of the proposal to update",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "title": {
+                                        "description": "Title of the proposal",
+                                        "type": "string",
+                                        "example": "Updated Title",
+                                        "nullable": true
+                                    },
+                                    "description": {
+                                        "description": "Detailed description of the proposal",
+                                        "type": "string",
+                                        "example": "Updated description with more details.",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "title": {
+                                        "description": "Title of the proposal",
+                                        "type": "string",
+                                        "example": "Updated Title",
+                                        "nullable": true
+                                    },
+                                    "description": {
+                                        "description": "Detailed description of the proposal",
+                                        "type": "string",
+                                        "example": "Updated description with more details.",
+                                        "nullable": true
+                                    },
+                                    "docs[]": {
+                                        "description": "A new array of PDF files to be uploaded, which will replace all previous documents. This field is optional.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
+                                    },
+                                    "_method": {
+                                        "description": "For form-data requests, this field is used to specify the HTTP method.",
+                                        "type": "string",
+                                        "default": "PATCH",
+                                        "example": "PATCH"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "string",
+                                            "example": "Proposal updated successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden: You are not authorized to update this proposal.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Proposal not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/users": {
             "get": {
                 "tags": [
@@ -652,16 +1508,6 @@
                         "schema": {
                             "type": "integer",
                             "default": 1
-                        }
-                    },
-                    {
-                        "name": "per_page",
-                        "in": "query",
-                        "description": "Number of items per page",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "default": 10
                         }
                     }
                 ],
@@ -2157,19 +3003,158 @@
                 "title": "User Pagination",
                 "description": "Paginated list of users",
                 "properties": {
+                    "current_page": {
+                        "type": "integer",
+                        "example": 1
+                    },
                     "data": {
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/User"
                         }
                     },
-                    "links": {
-                        "description": "Pagination links",
-                        "type": "object"
+                    "first_page_url": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/users?page=1"
                     },
-                    "meta": {
-                        "description": "Pagination meta information",
-                        "type": "object"
+                    "from": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "last_page": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "last_page_url": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/users?page=2"
+                    },
+                    "links": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "url": {
+                                    "type": "string",
+                                    "example": "http://localhost:8000/api/users?page=1",
+                                    "nullable": true
+                                },
+                                "label": {
+                                    "type": "string",
+                                    "example": "&laquo; Previous"
+                                },
+                                "active": {
+                                    "type": "boolean",
+                                    "example": true
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "next_page_url": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/users?page=2",
+                        "nullable": true
+                    },
+                    "path": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/users"
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "prev_page_url": {
+                        "type": "string",
+                        "example": null,
+                        "nullable": true
+                    },
+                    "to": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "total": {
+                        "type": "integer",
+                        "example": 14
+                    }
+                },
+                "type": "object"
+            },
+            "ProblemPagination": {
+                "title": "Problem Pagination",
+                "description": "Paginated list of problems",
+                "properties": {
+                    "current_page": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Problem"
+                        }
+                    },
+                    "first_page_url": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/problems?page=1"
+                    },
+                    "from": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "last_page": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "last_page_url": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/problems?page=2"
+                    },
+                    "links": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "url": {
+                                    "type": "string",
+                                    "example": "http://localhost:8000/api/problems?page=1",
+                                    "nullable": true
+                                },
+                                "label": {
+                                    "type": "string",
+                                    "example": "&laquo; Previous"
+                                },
+                                "active": {
+                                    "type": "boolean",
+                                    "example": true
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "next_page_url": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/problems?page=2",
+                        "nullable": true
+                    },
+                    "path": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/problems"
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "prev_page_url": {
+                        "type": "string",
+                        "example": null,
+                        "nullable": true
+                    },
+                    "to": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "total": {
+                        "type": "integer",
+                        "example": 14
                     }
                 },
                 "type": "object"
@@ -2393,6 +3378,194 @@
                         "type": "object"
                     }
                 ]
+            },
+            "ProposalDocs": {
+                "title": "ProposalDocs",
+                "description": "Proposal document model",
+                "properties": {
+                    "id": {
+                        "description": "Document ID",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "proposal_id": {
+                        "description": "ID of the associated proposal",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "file_url": {
+                        "description": "URL to the uploaded PDF file",
+                        "type": "string",
+                        "format": "url"
+                    }
+                },
+                "type": "object",
+                "example": {
+                    "id": 1,
+                    "proposal_id": 1,
+                    "file_url": "http://localhost:8000/storage/proposal_docs/document.pdf"
+                }
+            },
+            "Proposal": {
+                "title": "Proposal",
+                "description": "Proposal model",
+                "properties": {
+                    "id": {
+                        "description": "Proposal ID",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "provider_id": {
+                        "description": "ID of the provider who submitted the proposal",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "problem_id": {
+                        "description": "ID of the problem the proposal is for",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "title": {
+                        "description": "Title of the proposal",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "Full description of the proposal",
+                        "type": "string"
+                    },
+                    "status": {
+                        "description": "Current status of the proposal",
+                        "type": "string",
+                        "enum": [
+                            "submitted",
+                            "under_review",
+                            "accepted",
+                            "rejected"
+                        ]
+                    },
+                    "created_at": {
+                        "description": "Timestamp when the proposal was created",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "description": "Timestamp when the proposal was last updated",
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object",
+                "example": {
+                    "id": 1,
+                    "provider_id": 1,
+                    "problem_id": 1,
+                    "title": "My Solution to the Problem",
+                    "description": "This is a detailed description of my proposed solution...",
+                    "status": "submitted",
+                    "created_at": "2023-07-25T10:00:00.000000Z",
+                    "updated_at": "2023-07-25T10:00:00.000000Z"
+                }
+            },
+            "ProposalWithDocs": {
+                "title": "Proposal with Documents",
+                "description": "Proposal model with associated documents",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Proposal"
+                    },
+                    {
+                        "properties": {
+                            "docs": {
+                                "description": "List of documents for the proposal.",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/ProposalDocs"
+                                }
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
+            },
+            "ProposalPagination": {
+                "title": "Proposal Pagination",
+                "description": "Paginated list of proposals",
+                "properties": {
+                    "current_page": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Proposal"
+                        }
+                    },
+                    "first_page_url": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/proposals?page=1"
+                    },
+                    "from": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "last_page": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "last_page_url": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/proposals?page=2"
+                    },
+                    "links": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "url": {
+                                    "type": "string",
+                                    "example": "http://localhost:8000/api/proposals?page=1",
+                                    "nullable": true
+                                },
+                                "label": {
+                                    "type": "string",
+                                    "example": "&laquo; Previous"
+                                },
+                                "active": {
+                                    "type": "boolean",
+                                    "example": true
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "next_page_url": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/proposals?page=2",
+                        "nullable": true
+                    },
+                    "path": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/proposals"
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "prev_page_url": {
+                        "type": "string",
+                        "example": null,
+                        "nullable": true
+                    },
+                    "to": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "total": {
+                        "type": "integer",
+                        "example": 14
+                    }
+                },
+                "type": "object"
             }
         },
         "securitySchemes": {
@@ -2414,6 +3587,10 @@
         {
             "name": "Problems",
             "description": "API Endpoints for Problem Management"
+        },
+        {
+            "name": "Proposals",
+            "description": "API Endpoints for Proposal Management"
         }
     ]
 }
