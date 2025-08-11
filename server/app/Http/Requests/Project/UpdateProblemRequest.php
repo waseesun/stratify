@@ -2,18 +2,11 @@
 
 namespace App\Http\Requests\Project;
 
+use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateProblemRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return false;
-    }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -22,7 +15,32 @@ class UpdateProblemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'category_id' => ['nullable', 'exists:categories,id'],
+            'title' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'budget' => ['nullable', 'integer', 'min:0'],
+            'timeline_value' => ['nullable', 'integer', 'min:1'],
+            'timeline_unit' => ['nullable', Rule::in(['day', 'week', 'month', 'year'])],
+            'status' => ['nullable', Rule::in(['open', 'closed', 'cancelled'])],
+
+            'skills' => ['nullable', 'array', 'min:1'],
+            'skills.*' => ['nullable', 'string', 'max:100'],
+        ];
+    }
+
+    /**
+     * Get the error messages for the defined validation rules.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'status.in' => 'The selected problem status is invalid.',
+            'skills.array' => 'Skills must be provided as an array.',
+            'skills.min' => 'At least one skill is required.',
+            'skills.*.string' => 'Each skill must be a string.',
+            'skills.*.max' => 'Each skill may not be greater than :max characters.',
         ];
     }
 }

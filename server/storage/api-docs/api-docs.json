@@ -463,6 +463,100 @@
             }
         },
         "/api/problems": {
+            "get": {
+                "tags": [
+                    "Problems"
+                ],
+                "summary": "Get all problems",
+                "description": "Retrieves a paginated list of all problems. This endpoint is accessible to authenticated users.",
+                "operationId": "getAllProblems",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "current_page": {
+                                            "type": "integer"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Problem"
+                                            }
+                                        },
+                                        "first_page_url": {
+                                            "type": "string"
+                                        },
+                                        "from": {
+                                            "type": "integer"
+                                        },
+                                        "last_page": {
+                                            "type": "integer"
+                                        },
+                                        "last_page_url": {
+                                            "type": "string"
+                                        },
+                                        "links": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "next_page_url": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "path": {
+                                            "type": "string"
+                                        },
+                                        "per_page": {
+                                            "type": "integer"
+                                        },
+                                        "prev_page_url": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "to": {
+                                            "type": "integer"
+                                        },
+                                        "total": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
             "post": {
                 "tags": [
                     "Problems"
@@ -526,43 +620,32 @@
                                         ],
                                         "example": "month"
                                     },
-                                    "status": {
-                                        "description": "Current status of the problem (defaults to 'open').",
-                                        "type": "string",
-                                        "enum": [
-                                            "open",
-                                            "sold",
-                                            "closed",
-                                            "cancelled"
-                                        ],
-                                        "example": "open",
-                                        "nullable": true
-                                    },
                                     "skills": {
                                         "description": "Array of required skills for the problem.",
                                         "type": "array",
                                         "items": {
                                             "type": "string",
                                             "example": "React Native"
-                                        }
+                                        },
+                                        "minItems": 1
                                     }
                                 },
-                                "type": "object",
-                                "example": {
-                                    "company_id": 1,
-                                    "category_id": 1,
-                                    "title": "Develop a Mobile E-commerce App",
-                                    "description": "We need an iOS and Android e-commerce application with payment gateway integration.",
-                                    "budget": 25000,
-                                    "timeline_value": 3,
-                                    "timeline_unit": "month",
-                                    "skills": [
-                                        "React Native",
-                                        "Node.js",
-                                        "MongoDB",
-                                        "UI/UX Design"
-                                    ]
-                                }
+                                "type": "object"
+                            },
+                            "example": {
+                                "company_id": 1,
+                                "category_id": 1,
+                                "title": "Develop a Mobile E-commerce App",
+                                "description": "We need an iOS and Android e-commerce application with payment gateway integration.",
+                                "budget": 25000,
+                                "timeline_value": 3,
+                                "timeline_unit": "month",
+                                "skills": [
+                                    "React Native",
+                                    "Node.js",
+                                    "MongoDB",
+                                    "UI/UX Design"
+                                ]
                             }
                         }
                     }
@@ -609,6 +692,321 @@
                     },
                     "422": {
                         "description": "Validation Error: Invalid input for problem or skills.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/problems/{problem}": {
+            "get": {
+                "tags": [
+                    "Problems"
+                ],
+                "summary": "Get a single problem by ID",
+                "description": "Retrieves the details of a specific problem, including its skills.",
+                "operationId": "getProblemById",
+                "parameters": [
+                    {
+                        "name": "problem",
+                        "in": "path",
+                        "description": "ID of the problem to retrieve",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemWithSkills"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Problem not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Problems"
+                ],
+                "summary": "Delete a problem",
+                "description": "Deletes a problem and its associated skills. Only the company that owns the problem or a super admin can perform this action.",
+                "operationId": "deleteProblem",
+                "parameters": [
+                    {
+                        "name": "problem",
+                        "in": "path",
+                        "description": "ID of the problem to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Problem deleted successfully (No Content)."
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden: You are not authorized to delete this problem.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Problem not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Problems"
+                ],
+                "summary": "Update an existing problem",
+                "description": "Updates the details of an existing problem and its associated skills. Only the company that owns the problem or a super admin can perform this action.",
+                "operationId": "updateProblem",
+                "parameters": [
+                    {
+                        "name": "problem",
+                        "in": "path",
+                        "description": "ID of the problem to update",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Problem data to update, including skills. All fields are optional except for skills, which should be provided as a complete list to synchronize.",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "category_id": {
+                                        "description": "ID of the problem's category.",
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true
+                                    },
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Updated Mobile App Project",
+                                        "nullable": true
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "New description for the project.",
+                                        "nullable": true
+                                    },
+                                    "budget": {
+                                        "description": "Updated budget.",
+                                        "type": "integer",
+                                        "example": 30000,
+                                        "nullable": true
+                                    },
+                                    "timeline_value": {
+                                        "description": "Updated timeline value.",
+                                        "type": "integer",
+                                        "example": 4,
+                                        "nullable": true
+                                    },
+                                    "timeline_unit": {
+                                        "description": "Updated timeline unit.",
+                                        "type": "string",
+                                        "enum": [
+                                            "day",
+                                            "week",
+                                            "month",
+                                            "year"
+                                        ],
+                                        "example": "month",
+                                        "nullable": true
+                                    },
+                                    "status": {
+                                        "description": "Updated problem status.",
+                                        "type": "string",
+                                        "enum": [
+                                            "open",
+                                            "closed",
+                                            "cancelled"
+                                        ],
+                                        "example": "closed",
+                                        "nullable": true
+                                    },
+                                    "skills": {
+                                        "description": "Array of skills to synchronize. This will replace the old skill list.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "example": "Angular"
+                                        },
+                                        "minItems": 1,
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "title": "Updated Mobile App Project",
+                                "budget": 30000,
+                                "skills": [
+                                    "Angular",
+                                    "Node.js",
+                                    "Express.js"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Problem updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "string",
+                                            "example": "Problem updated successfully."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/ProblemWithSkills"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden: You are not authorized to update this problem.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Problem not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
                         "content": {
                             "application/json": {
                                 "schema": {

@@ -53,6 +53,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])
         ->name('api.deleteCategory');
 
+    Route::get('/problems', [ProblemController::class, 'index'])
+        ->name('api.getProblems');
+
+    Route::get('/problems/{problem}', [ProblemController::class, 'show'])
+        ->name('api.getProblem');
+
     Route::post('/problems', [ProblemController::class, 'create'])
         ->name('api.createProblem');
+
+    Route::patch('/problems/{problem}', [ProblemController::class, 'update'])
+        ->name('api.updateProblem');
+
+    Route::delete('/problems/{problem}', [ProblemController::class, 'destroy'])
+        ->name('api.deleteProblem');
     });

@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Problem;
 use App\Http\Requests\Project\RegisterProblemRequest;
 use App\Http\Requests\Project\UpdateProblemRequest;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\OpenApi\Annotations as OA;
 
@@ -18,31 +20,112 @@ class ProblemController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * @OA\Get(
+     * path="/api/problems",
+     * operationId="getAllProblems",
+     * tags={"Problems"},
+     * summary="Get all problems",
+     * description="Retrieves a paginated list of all problems. This endpoint is accessible to authenticated users.",
+     * security={{"sanctum": {}}},
+     * @OA\Response(
+     * response=200,
+     * description="Successful operation",
+     * @OA\JsonContent(
+     * @OA\Property(property="current_page", type="integer"),
+     * @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Problem")),
+     * @OA\Property(property="first_page_url", type="string"),
+     * @OA\Property(property="from", type="integer"),
+     * @OA\Property(property="last_page", type="integer"),
+     * @OA\Property(property="last_page_url", type="string"),
+     * @OA\Property(property="links", type="array", @OA\Items(type="object")),
+     * @OA\Property(property="next_page_url", type="string", nullable=true),
+     * @OA\Property(property="path", type="string"),
+     * @OA\Property(property="per_page", type="integer"),
+     * @OA\Property(property="prev_page_url", type="string", nullable=true),
+     * @OA\Property(property="to", type="integer"),
+     * @OA\Property(property="total", type="integer")
+     * )
+     * ),
+     * @OA\Response(
+     * response=401,
+     * description="Unauthenticated",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=500,
+     * description="Internal Server Error",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * )
+     * )
      */
     public function index()
     {
         try {
-            //
+            $problems = Problem::paginate(10);
+            return response()->json($problems, 200);
         } catch (\Exception $e) {
             Log::error($e);
             return response()->json([
-                "errors" => $e->getMessage()
+                "errors" => 'An unexpected error occurred: ' . $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Display the specified resource.
+     * @OA\Get(
+     * path="/api/problems/{problem}",
+     * operationId="getProblemById",
+     * tags={"Problems"},
+     * summary="Get a single problem by ID",
+     * description="Retrieves the details of a specific problem, including its skills.",
+     * security={{"sanctum": {}}},
+     * @OA\Parameter(
+     * name="problem",
+     * in="path",
+     * description="ID of the problem to retrieve",
+     * required=true,
+     * @OA\Schema(type="integer")
+     * ),
+     * @OA\Response(
+     * response=200,
+     * description="Successful operation",
+     * @OA\JsonContent(ref="#/components/schemas/ProblemWithSkills")
+     * ),
+     * @OA\Response(
+     * response=401,
+     * description="Unauthenticated",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=404,
+     * description="Not Found: Problem not found.",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=500,
+     * description="Internal Server Error",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * )
+     * )
      */
     public function show(string $problem)
     {
         try {
-            //
+            $problem = Problem::find($problem);
+
+            if (!$problem) {
+                return response()->json([
+                    "errors" => "Problem not found"
+                ], 404);
+            }
+
+            $problem->load('skillsets');
+
+            return response()->json($problem, 200);
         } catch (\Exception $e) {
             Log::error($e);
             return response()->json([
-                "errors" => $e->getMessage()
+                "errors" => 'An unexpected error occurred: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -58,9 +141,7 @@ class ProblemController extends Controller
      * @OA\RequestBody(
      * required=true,
      * description="Problem data including associated skills.",
-     * @OA\MediaType(
-     * mediaType="application/json",
-     * @OA\Schema(
+     * @OA\JsonContent(
      * required={"company_id", "category_id", "title", "budget", "timeline_value", "timeline_unit", "skills"},
      * @OA\Property(property="company_id", type="integer", format="int64", description="ID of the company user creating the problem."),
      * @OA\Property(property="category_id", type="integer", format="int64", description="ID of the problem's category."),
@@ -69,10 +150,10 @@ class ProblemController extends Controller
      * @OA\Property(property="budget", type="integer", example=25000, description="Budget for the problem in base currency units."),
      * @OA\Property(property="timeline_value", type="integer", example=3, description="Numerical value for the timeline (e.g., 3 for '3 months')."),
      * @OA\Property(property="timeline_unit", type="string", enum={"day", "week", "month", "year"}, example="month", description="Unit for the timeline value."),
-     * @OA\Property(property="status", type="string", enum={"open", "sold", "closed", "cancelled"}, nullable=true, example="open", description="Current status of the problem (defaults to 'open')."),
      * @OA\Property(
      * property="skills",
      * type="array",
+     * minItems=1,
      * @OA\Items(type="string", example="React Native"),
      * description="Array of required skills for the problem."
      * ),
@@ -86,7 +167,6 @@ class ProblemController extends Controller
      * "timeline_unit": "month",
      * "skills": {"React Native", "Node.js", "MongoDB", "UI/UX Design"}
      * }
-     * )
      * )
      * ),
      * @OA\Response(
@@ -124,16 +204,21 @@ class ProblemController extends Controller
      */
     public function create(RegisterProblemRequest $request): JsonResponse
     {
+        if (
+            Auth::user()->role !== 'company' &&
+            Auth::user()->id !== $request->company_id && 
+            !Auth::user()->isSuperAdmin()
+        ) {
+            return response()->json([
+                "errors" => "You are not authorized to create a problem for this company ID."
+            ], 403);
+        }
+        
+        $validated = $request->validated();
+        $problemData = Arr::except($validated, ['skills']);
+        $skillsData = $validated['skills'];
+
         try {
-            if (Auth::user()->id !== $request->company_id && !Auth::user()->isSuperAdmin()) {
-                return response()->json([
-                    "errors" => "You are not authorized to create a problem for this company ID."
-                ], 403);
-            }
-
-            $problemData = $request->except('skills');
-            $skillsData = $request->input('skills');
-
             $problem = Problem::create($problemData);
 
             $problemSkillsets = [];
@@ -149,7 +234,135 @@ class ProblemController extends Controller
                 "success" => "Problem registered successfully."
             ], 201);
         } catch (\Exception $e) {
-            Log::error("Error registering problem: " . $e->getMessage(), ['exception' => $e, 'request_data' => $request->all()]);
+            Log::error($e);
+            return response()->json([
+                "errors" => 'An unexpected error occurred: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * @OA\Patch(
+     * path="/api/problems/{problem}",
+     * operationId="updateProblem",
+     * tags={"Problems"},
+     * summary="Update an existing problem",
+     * description="Updates the details of an existing problem and its associated skills. Only the company that owns the problem or a super admin can perform this action.",
+     * security={{"sanctum": {}}},
+     * @OA\Parameter(
+     * name="problem",
+     * in="path",
+     * description="ID of the problem to update",
+     * required=true,
+     * @OA\Schema(type="integer")
+     * ),
+     * @OA\RequestBody(
+     * required=true,
+     * description="Problem data to update, including skills. All fields are optional except for skills, which should be provided as a complete list to synchronize.",
+     * @OA\JsonContent(
+     * @OA\Property(property="category_id", type="integer", format="int64", description="ID of the problem's category.", nullable=true),
+     * @OA\Property(property="title", type="string", example="Updated Mobile App Project", nullable=true),
+     * @OA\Property(property="description", type="string", example="New description for the project.", nullable=true),
+     * @OA\Property(property="budget", type="integer", example=30000, description="Updated budget.", nullable=true),
+     * @OA\Property(property="timeline_value", type="integer", example=4, description="Updated timeline value.", nullable=true),
+     * @OA\Property(property="timeline_unit", type="string", enum={"day", "week", "month", "year"}, example="month", description="Updated timeline unit.", nullable=true),
+     * @OA\Property(property="status", type="string", enum={"open", "closed", "cancelled"}, example="closed", description="Updated problem status.", nullable=true),
+     * @OA\Property(
+     * property="skills",
+     * type="array",
+     * minItems=1,
+     * @OA\Items(type="string", example="Angular"),
+     * description="Array of skills to synchronize. This will replace the old skill list.",
+     * nullable=true
+     * ),
+     * example={
+     * "title": "Updated Mobile App Project",
+     * "budget": 30000,
+     * "skills": {"Angular", "Node.js", "Express.js"}
+     * }
+     * )
+     * ),
+     * @OA\Response(
+     * response=200,
+     * description="Problem updated successfully",
+     * @OA\JsonContent(
+     * @OA\Property(property="success", type="string", example="Problem updated successfully."),
+     * @OA\Property(property="data", ref="#/components/schemas/ProblemWithSkills")
+     * )
+     * ),
+     * @OA\Response(
+     * response=401,
+     * description="Unauthenticated",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=403,
+     * description="Forbidden: You are not authorized to update this problem.",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=404,
+     * description="Not Found: Problem not found.",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=422,
+     * description="Validation Error",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=500,
+     * description="Internal Server Error",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * )
+     * )
+     */
+    public function update(UpdateProblemRequest $request, string $problem)
+    {
+        $validated = $request->validated();
+
+        try {
+            $problem = Problem::find($problem);
+
+            if (!$problem) {
+                return response()->json([
+                    "errors" => "Problem not found"
+                ], 404);
+            }
+
+            if (Auth::user()->id !== $problem->company_id && !Auth::user()->isSuperAdmin()) {
+                return response()->json([
+                    "errors" => "You are not authorized to create a problem for this company ID."
+                ], 403);
+            }
+
+            $problemData = Arr::except($validated, ['skills']);
+            $skillsData = $validated['skills'];
+
+            $problem->update($problemData);
+
+            if ($skillsData !== null) {
+                $existingSkillNames = $problem->skillsets()->pluck('skill')->toArray();
+                
+                $skillsToAdd = array_diff($skillsData, $existingSkillNames);
+                $skillsToRemove = array_diff($existingSkillNames, $skillsData);
+
+                if (!empty($skillsToRemove)) {
+                    $problem->skillsets()->whereIn('skill', $skillsToRemove)->delete();
+                }
+
+                if (!empty($skillsToAdd)) {
+                    $problem->skillsets()->createMany(
+                        collect($skillsToAdd)->map(fn ($skill) => ['skill' => $skill])->toArray()
+                    );
+                }
+            }
+
+            return response()->json([
+                "success" => "Problem updated successfully."
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error("Error updating problem: " . $e->getMessage(), ['exception' => $e, 'request_data' => $request->all()]);
             return response()->json([
                 "error" => "An unexpected error occurred: " . $e->getMessage()
             ], 500);
@@ -157,18 +370,72 @@ class ProblemController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * @OA\Delete(
+     * path="/api/problems/{problem}",
+     * operationId="deleteProblem",
+     * tags={"Problems"},
+     * summary="Delete a problem",
+     * description="Deletes a problem and its associated skills. Only the company that owns the problem or a super admin can perform this action.",
+     * security={{"sanctum": {}}},
+     * @OA\Parameter(
+     * name="problem",
+     * in="path",
+     * description="ID of the problem to delete",
+     * required=true,
+     * @OA\Schema(type="integer")
+     * ),
+     * @OA\Response(
+     * response=204,
+     * description="Problem deleted successfully (No Content)."
+     * ),
+     * @OA\Response(
+     * response=401,
+     * description="Unauthenticated",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=403,
+     * description="Forbidden: You are not authorized to delete this problem.",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=404,
+     * description="Not Found: Problem not found.",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=500,
+     * description="Internal Server Error",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * )
+     * )
      */
-    public function update(UpdateProblemRequest $request, string $problem)
+    public function destroy(Request $request, string $problem)
     {
-        //
-    }
+        try {
+            $problem = Problem::find($problem);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $problem)
-    {
-        //
+            if (!$problem) {
+                return response()->json([
+                    "errors" => "Problem not found"
+                ], 404);
+            }
+
+            if (Auth::user()->id !== $problem->company_id && !Auth::user()->isSuperAdmin()) {
+                return response()->json([
+                    "errors" => "You are not authorized to create a problem for this company ID."
+                ], 403);
+            }
+
+            $problem->skillsets()->delete();
+            $problem->delete();
+
+            return response()->json(null, 204);
+        } catch (\Exception $e) {
+            Log::error($e);
+            return response()->json([
+                "errors" => 'An unexpected error occurred: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
