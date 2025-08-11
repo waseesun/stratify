@@ -34,6 +34,10 @@ use OpenApi\Annotations as OA;
  * name="Problems",
  * description="API Endpoints for Problem Management"
  * )
+ * @OA\Tag(
+ * name="Proposals",
+ * description="API Endpoints for Proposal Management"
+ * )
  *
  * @OA\Schema(
  * schema="ErrorResponse",
@@ -72,9 +76,54 @@ use OpenApi\Annotations as OA;
  * schema="UserPagination",
  * title="User Pagination",
  * description="Paginated list of users",
+ * @OA\Property(property="current_page", type="integer", example=1),
  * @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/User")),
- * @OA\Property(property="links", type="object", description="Pagination links"),
- * @OA\Property(property="meta", type="object", description="Pagination meta information")
+ * @OA\Property(property="first_page_url", type="string", example="http://localhost:8000/api/users?page=1"),
+ * @OA\Property(property="from", type="integer", example=1),
+ * @OA\Property(property="last_page", type="integer", example=2),
+ * @OA\Property(property="last_page_url", type="string", example="http://localhost:8000/api/users?page=2"),
+ * @OA\Property(
+ * property="links",
+ * type="array",
+ * @OA\Items(
+ * @OA\Property(property="url", type="string", nullable=true, example="http://localhost:8000/api/users?page=1"),
+ * @OA\Property(property="label", type="string", example="&laquo; Previous"),
+ * @OA\Property(property="active", type="boolean", example=true)
+ * )
+ * ),
+ * @OA\Property(property="next_page_url", type="string", nullable=true, example="http://localhost:8000/api/users?page=2"),
+ * @OA\Property(property="path", type="string", example="http://localhost:8000/api/users"),
+ * @OA\Property(property="per_page", type="integer", example=10),
+ * @OA\Property(property="prev_page_url", type="string", nullable=true, example=null),
+ * @OA\Property(property="to", type="integer", example=10),
+ * @OA\Property(property="total", type="integer", example=14)
+ * )
+ *
+ * @OA\Schema(
+ * schema="ProblemPagination",
+ * title="Problem Pagination",
+ * description="Paginated list of problems",
+ * @OA\Property(property="current_page", type="integer", example=1),
+ * @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Problem")),
+ * @OA\Property(property="first_page_url", type="string", example="http://localhost:8000/api/problems?page=1"),
+ * @OA\Property(property="from", type="integer", example=1),
+ * @OA\Property(property="last_page", type="integer", example=2),
+ * @OA\Property(property="last_page_url", type="string", example="http://localhost:8000/api/problems?page=2"),
+ * @OA\Property(
+ * property="links",
+ * type="array",
+ * @OA\Items(
+ * @OA\Property(property="url", type="string", nullable=true, example="http://localhost:8000/api/problems?page=1"),
+ * @OA\Property(property="label", type="string", example="&laquo; Previous"),
+ * @OA\Property(property="active", type="boolean", example=true)
+ * )
+ * ),
+ * @OA\Property(property="next_page_url", type="string", nullable=true, example="http://localhost:8000/api/problems?page=2"),
+ * @OA\Property(property="path", type="string", example="http://localhost:8000/api/problems"),
+ * @OA\Property(property="per_page", type="integer", example=10),
+ * @OA\Property(property="prev_page_url", type="string", nullable=true, example=null),
+ * @OA\Property(property="to", type="integer", example=10),
+ * @OA\Property(property="total", type="integer", example=14)
  * )
  *
  * @OA\Schema(
@@ -167,6 +216,85 @@ use OpenApi\Annotations as OA;
  * )
  * }
  * )
+ *
+ * @OA\Schema(
+ * schema="ProposalDocs",
+ * title="ProposalDocs",
+ * description="Proposal document model",
+ * @OA\Property(property="id", type="integer", format="int64", description="Document ID"),
+ * @OA\Property(property="proposal_id", type="integer", format="int64", description="ID of the associated proposal"),
+ * @OA\Property(property="file_url", type="string", format="url", description="URL to the uploaded PDF file"),
+ * example={
+ * "id": 1,
+ * "proposal_id": 1,
+ * "file_url": "http://localhost:8000/storage/proposal_docs/document.pdf"
+ * }
+ * )
+ *
+ * @OA\Schema(
+ * schema="Proposal",
+ * title="Proposal",
+ * description="Proposal model",
+ * @OA\Property(property="id", type="integer", format="int64", description="Proposal ID"),
+ * @OA\Property(property="provider_id", type="integer", format="int64", description="ID of the provider who submitted the proposal"),
+ * @OA\Property(property="problem_id", type="integer", format="int64", description="ID of the problem the proposal is for"),
+ * @OA\Property(property="title", type="string", description="Title of the proposal"),
+ * @OA\Property(property="description", type="string", description="Full description of the proposal"),
+ * @OA\Property(property="status", type="string", enum={"submitted", "under_review", "accepted", "rejected"}, description="Current status of the proposal"),
+ * @OA\Property(property="created_at", type="string", format="date-time", description="Timestamp when the proposal was created"),
+ * @OA\Property(property="updated_at", type="string", format="date-time", description="Timestamp when the proposal was last updated"),
+ * example={
+ * "id": 1, "provider_id": 1, "problem_id": 1, "title": "My Solution to the Problem",
+ * "description": "This is a detailed description of my proposed solution...",
+ * "status": "submitted", "created_at": "2023-07-25T10:00:00.000000Z",
+ * "updated_at": "2023-07-25T10:00:00.000000Z"
+ * }
+ * )
+ *
+ * @OA\Schema(
+ * schema="ProposalWithDocs",
+ * title="Proposal with Documents",
+ * description="Proposal model with associated documents",
+ * allOf={
+ * @OA\Schema(ref="#/components/schemas/Proposal"),
+ * @OA\Schema(
+ * @OA\Property(
+ * property="docs",
+ * type="array",
+ * @OA\Items(ref="#/components/schemas/ProposalDocs"),
+ * description="List of documents for the proposal."
+ * )
+ * )
+ * }
+ * )
+ *
+ * @OA\Schema(
+ * schema="ProposalPagination",
+ * title="Proposal Pagination",
+ * description="Paginated list of proposals",
+ * @OA\Property(property="current_page", type="integer", example=1),
+ * @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Proposal")),
+ * @OA\Property(property="first_page_url", type="string", example="http://localhost:8000/api/proposals?page=1"),
+ * @OA\Property(property="from", type="integer", example=1),
+ * @OA\Property(property="last_page", type="integer", example=2),
+ * @OA\Property(property="last_page_url", type="string", example="http://localhost:8000/api/proposals?page=2"),
+ * @OA\Property(
+ * property="links",
+ * type="array",
+ * @OA\Items(
+ * @OA\Property(property="url", type="string", nullable=true, example="http://localhost:8000/api/proposals?page=1"),
+ * @OA\Property(property="label", type="string", example="&laquo; Previous"),
+ * @OA\Property(property="active", type="boolean", example=true)
+ * )
+ * ),
+ * @OA\Property(property="next_page_url", type="string", nullable=true, example="http://localhost:8000/api/proposals?page=2"),
+ * @OA\Property(property="path", type="string", example="http://localhost:8000/api/proposals"),
+ * @OA\Property(property="per_page", type="integer", example=10),
+ * @OA\Property(property="prev_page_url", type="string", nullable=true, example=null),
+ * @OA\Property(property="to", type="integer", example=10),
+ * @OA\Property(property="total", type="integer", example=14)
+ * )
+ *
  */
 class Annotations
 {

@@ -65,13 +65,6 @@ class UserController extends Controller
      * required=false,
      * @OA\Schema(type="integer", default=1)
      * ),
-     * @OA\Parameter(
-     * name="per_page",
-     * in="query",
-     * description="Number of items per page",
-     * required=false,
-     * @OA\Schema(type="integer", default=10)
-     * ),
      * @OA\Response(
      * response=200,
      * description="Successful operation",

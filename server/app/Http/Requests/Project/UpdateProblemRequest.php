@@ -24,7 +24,7 @@ class UpdateProblemRequest extends FormRequest
             'status' => ['nullable', Rule::in(['open', 'closed', 'cancelled'])],
 
             'skills' => ['nullable', 'array', 'min:1'],
-            'skills.*' => ['nullable', 'string', 'max:100'],
+            'skills.*' => ['required', 'string', 'max:100'],
         ];
     }
 
@@ -39,6 +39,7 @@ class UpdateProblemRequest extends FormRequest
             'status.in' => 'The selected problem status is invalid.',
             'skills.array' => 'Skills must be provided as an array.',
             'skills.min' => 'At least one skill is required.',
+            'skills.*.required' => 'Each skill is required.',
             'skills.*.string' => 'Each skill must be a string.',
             'skills.*.max' => 'Each skill may not be greater than :max characters.',
         ];

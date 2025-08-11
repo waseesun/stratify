@@ -27,24 +27,17 @@ class ProblemController extends Controller
      * summary="Get all problems",
      * description="Retrieves a paginated list of all problems. This endpoint is accessible to authenticated users.",
      * security={{"sanctum": {}}},
+     * @OA\Parameter(
+     * name="page",
+     * in="query",
+     * description="Page number for pagination",
+     * required=false,
+     * @OA\Schema(type="integer", default=1)
+     * ),
      * @OA\Response(
      * response=200,
      * description="Successful operation",
-     * @OA\JsonContent(
-     * @OA\Property(property="current_page", type="integer"),
-     * @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Problem")),
-     * @OA\Property(property="first_page_url", type="string"),
-     * @OA\Property(property="from", type="integer"),
-     * @OA\Property(property="last_page", type="integer"),
-     * @OA\Property(property="last_page_url", type="string"),
-     * @OA\Property(property="links", type="array", @OA\Items(type="object")),
-     * @OA\Property(property="next_page_url", type="string", nullable=true),
-     * @OA\Property(property="path", type="string"),
-     * @OA\Property(property="per_page", type="integer"),
-     * @OA\Property(property="prev_page_url", type="string", nullable=true),
-     * @OA\Property(property="to", type="integer"),
-     * @OA\Property(property="total", type="integer")
-     * )
+     * @OA\JsonContent(ref="#/components/schemas/ProblemPagination")
      * ),
      * @OA\Response(
      * response=401,
@@ -319,8 +312,6 @@ class ProblemController extends Controller
      */
     public function update(UpdateProblemRequest $request, string $problem)
     {
-        $validated = $request->validated();
-
         try {
             $problem = Problem::find($problem);
 
@@ -332,10 +323,11 @@ class ProblemController extends Controller
 
             if (Auth::user()->id !== $problem->company_id && !Auth::user()->isSuperAdmin()) {
                 return response()->json([
-                    "errors" => "You are not authorized to create a problem for this company ID."
+                    "errors" => "You are not authorized to update a problem for this company ID."
                 ], 403);
             }
 
+            $validated = $request->validated();
             $problemData = Arr::except($validated, ['skills']);
             $skillsData = $validated['skills'];
 
@@ -423,7 +415,7 @@ class ProblemController extends Controller
 
             if (Auth::user()->id !== $problem->company_id && !Auth::user()->isSuperAdmin()) {
                 return response()->json([
-                    "errors" => "You are not authorized to create a problem for this company ID."
+                    "errors" => "You are not authorized to delete a problem for this company ID."
                 ], 403);
             }
 
