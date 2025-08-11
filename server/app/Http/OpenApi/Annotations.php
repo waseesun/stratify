@@ -25,12 +25,147 @@ use OpenApi\Annotations as OA;
  * description="API Endpoints for User Management"
  * )
  *
+ * @OA\Tag(
+ * name="Categories",
+ * description="API Endpoints for Category Management"
+ * )
+ *
+ * @OA\Tag(
+ * name="Problems",
+ * description="API Endpoints for Problem Management"
+ * )
+ *
  * @OA\Schema(
  * schema="ErrorResponse",
  * title="Error Response",
  * description="Standard error response format for generic errors (e.g., 401, 403, 404, 500)",
  * @OA\Property(property="errors", type="string", description="Error message"),
  * example={"errors": "Something went wrong."}
+ * )
+ *
+ * @OA\Schema(
+ * schema="User",
+ * title="User",
+ * description="User model",
+ * @OA\Property(property="id", type="integer", format="int64", description="User ID"),
+ * @OA\Property(property="first_name", type="string", description="User's first name"),
+ * @OA\Property(property="last_name", type="string", description="User's last name"),
+ * @OA\Property(property="email", type="string", format="email", description="User's email address"),
+ * @OA\Property(property="username", type="string", description="User's unique username"),
+ * @OA\Property(property="address", type="string", nullable=true, description="User's address"),
+ * @OA\Property(property="role", type="string", enum={"admin", "company", "provider"}, description="User's role"),
+ * @OA\Property(property="is_admin", type="boolean", description="Indicates if the user has admin privileges"),
+ * @OA\Property(property="is_active", type="boolean", description="Indicates if the user account is active"),
+ * @OA\Property(property="description", type="string", nullable=true, description="User description (e.g., for providers)"),
+ * @OA\Property(property="image_url", type="string", nullable=true, description="URL to user's profile image"),
+ * @OA\Property(property="created_at", type="string", format="date-time", description="Timestamp of user creation"),
+ * @OA\Property(property="updated_at", type="string", format="date-time", description="Timestamp of last update"),
+ * example={
+ * "id": 1, "first_name": "John", "last_name": "Doe", "email": "john.doe@example.com",
+ * "username": "johndoe", "address": "123 Main St", "role": "company",
+ * "is_admin": false, "is_active": true, "description": null, "image_url": null,
+ * "created_at": "2023-01-01T12:00:00.000000Z", "updated_at": "2023-01-01T12:00:00.000000Z"
+ * }
+ * )
+ *
+ * @OA\Schema(
+ * schema="UserPagination",
+ * title="User Pagination",
+ * description="Paginated list of users",
+ * @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/User")),
+ * @OA\Property(property="links", type="object", description="Pagination links"),
+ * @OA\Property(property="meta", type="object", description="Pagination meta information")
+ * )
+ *
+ * @OA\Schema(
+ * schema="PortfolioLink",
+ * title="PortfolioLink",
+ * description="Portfolio link model",
+ * @OA\Property(property="id", type="integer", format="int64", description="ID of the portfolio link"),
+ * @OA\Property(property="provider_id", type="integer", format="int64", description="ID of the user (provider) who owns this link"),
+ * @OA\Property(property="link", type="string", format="url", description="The URL of the portfolio link"),
+ * @OA\Property(property="created_at", type="string", format="date-time", nullable=true, description="Timestamp when the portfolio link was created"),
+ * @OA\Property(property="updated_at", type="string", format="date-time", nullable=true, description="Timestamp when the portfolio link was last updated")
+ * )
+ *
+ * @OA\Schema(
+ * schema="Category",
+ * title="Category",
+ * description="Category model",
+ * @OA\Property(property="id", type="integer", format="int64", description="Category ID"),
+ * @OA\Property(property="name", type="string", description="Name of the category"),
+ * example={
+ * "id": 1,
+ * "name": "Web Development"
+ * }
+ * )
+ *
+ * @OA\Schema(
+ * schema="CategoryRequest",
+ * title="Category Request",
+ * description="Request body for creating or updating a category",
+ * @OA\Property(property="name", type="string", description="Name of the category", example="Books"),
+ * required={"name"}
+ * )
+ *
+ * @OA\Schema(
+ * schema="CategoryPivot",
+ * title="CategoryPivot",
+ * description="Pivot table attributes for the User-Category relationship",
+ * @OA\Property(property="user_id", type="integer", description="ID of the user"),
+ * @OA\Property(property="category_id", type="integer", description="ID of the category")
+ * )
+ *
+ * @OA\Schema(
+ * schema="Problem",
+ * title="Problem",
+ * description="Problem model",
+ * @OA\Property(property="id", type="integer", format="int64", description="Problem ID"),
+ * @OA\Property(property="company_id", type="integer", format="int64", description="ID of the company that posted the problem"),
+ * @OA\Property(property="category_id", type="integer", format="int64", description="ID of the problem's category"),
+ * @OA\Property(property="title", type="string", description="Title of the problem"),
+ * @OA\Property(property="description", type="string", nullable=true, description="Full description of the problem"),
+ * @OA\Property(property="budget", type="integer", description="Budget for the problem"),
+ * @OA\Property(property="timeline_value", type="integer", description="Numerical value for the timeline"),
+ * @OA\Property(property="timeline_unit", type="string", enum={"day", "week", "month", "year"}, description="Unit for the timeline value"),
+ * @OA\Property(property="status", type="string", enum={"open", "sold", "closed", "cancelled"}, description="Current status of the problem"),
+ * @OA\Property(property="created_at", type="string", format="date-time", description="Timestamp when the problem was created"),
+ * @OA\Property(property="updated_at", type="string", format="date-time", description="Timestamp when the problem was last updated"),
+ * example={
+ * "id": 1, "company_id": 1, "category_id": 1, "title": "Develop a Mobile E-commerce App",
+ * "description": "We need an iOS and Android e-commerce application with payment gateway integration.",
+ * "budget": 25000, "timeline_value": 3, "timeline_unit": "month",
+ * "status": "open", "created_at": "2023-07-25T10:00:00.000000Z",
+ * "updated_at": "2023-07-25T10:00:00.000000Z"
+ * }
+ * )
+ *
+ * @OA\Schema(
+ * schema="ProblemSkillset",
+ * title="ProblemSkillset",
+ * description="Skill required for a problem",
+ * @OA\Property(property="id", type="integer", format="int64", description="Skillset ID"),
+ * @OA\Property(property="problem_id", type="integer", format="int64", description="ID of the associated problem"),
+ * @OA\Property(property="skill", type="string", description="The required skill (e.g., 'React Native')"),
+ * @OA\Property(property="created_at", type="string", format="date-time", nullable=true, description="Timestamp when the skill was added"),
+ * @OA\Property(property="updated_at", type="string", format="date-time", nullable=true, description="Timestamp when the skill was last updated")
+ * )
+ *
+ * @OA\Schema(
+ * schema="ProblemWithSkills",
+ * title="Problem with Skills",
+ * description="Problem model with associated skills",
+ * allOf={
+ * @OA\Schema(ref="#/components/schemas/Problem"),
+ * @OA\Schema(
+ * @OA\Property(
+ * property="skillsets",
+ * type="array",
+ * @OA\Items(ref="#/components/schemas/ProblemSkillset"),
+ * description="List of skills required for the problem."
+ * )
+ * )
+ * }
  * )
  */
 class Annotations

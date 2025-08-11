@@ -12,55 +12,10 @@ use App\Models\User;
 use App\Http\Requests\User\RegisterUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Requests\User\UpdatePortfolioLinksRequest;
+use App\Http\Requests\User\UpdateUserCategoryRequest;
 use App\Traits\AuthenticateUser;
 use App\OpenApi\Annotations as OA;
 
-/**
- * @OA\Schema(
- * schema="User",
- * title="User",
- * description="User model",
- * @OA\Property(property="id", type="integer", format="int64", description="User ID"),
- * @OA\Property(property="first_name", type="string", description="User's first name"),
- * @OA\Property(property="last_name", type="string", description="User's last name"),
- * @OA\Property(property="email", type="string", format="email", description="User's email address"),
- * @OA\Property(property="username", type="string", description="User's unique username"),
- * @OA\Property(property="address", type="string", nullable=true, description="User's address"),
- * @OA\Property(property="role", type="string", enum={"admin", "company", "provider"}, description="User's role"),
- * @OA\Property(property="is_admin", type="boolean", description="Indicates if the user has admin privileges"),
- * @OA\Property(property="is_active", type="boolean", description="Indicates if the user account is active"),
- * @OA\Property(property="description", type="string", nullable=true, description="User description (e.g., for providers)"),
- * @OA\Property(property="image_url", type="string", nullable=true, description="URL to user's profile image"),
- * @OA\Property(property="created_at", type="string", format="date-time", description="Timestamp of user creation"),
- * @OA\Property(property="updated_at", type="string", format="date-time", description="Timestamp of last update"),
- * example={
- * "id": 1, "first_name": "John", "last_name": "Doe", "email": "john.doe@example.com",
- * "username": "johndoe", "address": "123 Main St", "role": "company",
- * "is_admin": false, "is_active": true, "description": null, "image_url": null,
- * "created_at": "2023-01-01T12:00:00.000000Z", "updated_at": "2023-01-01T12:00:00.000000Z"
- * }
- * )
- *
- * @OA\Schema(
- * schema="UserPagination",
- * title="User Pagination",
- * description="Paginated list of users",
- * @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/User")),
- * @OA\Property(property="links", type="object", description="Pagination links"),
- * @OA\Property(property="meta", type="object", description="Pagination meta information")
- * )
- *
- * @OA\Schema(
- * schema="PortfolioLink",
- * title="PortfolioLink",
- * description="Portfolio link model",
- * @OA\Property(property="id", type="integer", format="int64", description="ID of the portfolio link"),
- * @OA\Property(property="provider_id", type="integer", format="int64", description="ID of the user (provider) who owns this link"),
- * @OA\Property(property="link", type="string", format="url", description="The URL of the portfolio link"),
- * @OA\Property(property="created_at", type="string", format="date-time", nullable=true, description="Timestamp when the portfolio link was created"),
- * @OA\Property(property="updated_at", type="string", format="date-time", nullable=true, description="Timestamp when the portfolio link was last updated")
- * )
- */
 class UserController extends Controller
 {
     use AuthenticateUser;
@@ -170,7 +125,7 @@ class UserController extends Controller
      * operationId="getUserByIdOrSlug",
      * tags={"Users"},
      * summary="Get user details by ID or slug",
-     * description="Retrieves the details of a specific user by their ID or slug. A user can view their own profile, or an admin can view any user's profile. Includes portfolio links if the user is a 'provider'.",
+     * description="Retrieves the details of a specific user by their ID or slug. A user can view their own profile, or an admin can view any user's profile. Includes categories and portfolio links if applicable.",
      * security={{"sanctum": {}}},
      * @OA\Parameter(
      * name="user",
@@ -185,6 +140,22 @@ class UserController extends Controller
      * @OA\JsonContent(
      * allOf={
      * @OA\Schema(ref="#/components/schemas/User"),
+     * @OA\Schema(
+     * @OA\Property(
+     * property="categories",
+     * type="array",
+     * @OA\Items(
+     * allOf={
+     * @OA\Schema(ref="#/components/schemas/Category"),
+     * @OA\Schema(
+     * @OA\Property(property="pivot", ref="#/components/schemas/CategoryPivot")
+     * )
+     * }
+     * ),
+     * nullable=true,
+     * description="List of categories for the user."
+     * )
+     * ),
      * @OA\Schema(
      * @OA\Property(
      * property="portfolio_links",
@@ -241,6 +212,8 @@ class UserController extends Controller
                     "errors" => "You are not authorized to view this user."
                 ], 403);
             }
+
+            $foundUser->load('categories');
 
             if ($foundUser->role === 'provider') {
                 $foundUser->load('portfolioLinks');
@@ -868,6 +841,120 @@ class UserController extends Controller
             Log::error($e);
             return response()->json([
                 "error" => "An unexpected error occurred: " . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * @OA\Patch(
+     * path="/api/users/{user}/categories",
+     * operationId="updateUserCategories",
+     * tags={"Users"},
+     * summary="Update a user's categories",
+     * description="Synchronizes a user's categories with a new list. Old categories are removed, and new ones are added.",
+     * security={{"sanctum": {}}},
+     * @OA\Parameter(
+     * name="user",
+     * in="path",
+     * description="ID or slug of the user to update",
+     * required=true,
+     * @OA\Schema(type="string")
+     * ),
+     * @OA\RequestBody(
+     * required=true,
+     * description="List of category IDs to associate with the user",
+     * @OA\JsonContent(
+     * required={"categories"},
+     * @OA\Property(
+     * property="categories",
+     * type="array",
+     * @OA\Items(type="integer"),
+     * description="Array of category IDs",
+     * example={1, 3, 5}
+     * )
+     * )
+     * ),
+     * @OA\Response(
+     * response=200,
+     * description="Successful operation",
+     * @OA\JsonContent(
+     * @OA\Property(property="Success", type="string", example="Categories updated successfully.")
+     * )
+     * ),
+     * @OA\Response(
+     * response=401,
+     * description="Unauthenticated",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=403,
+     * description="Forbidden: You are not authorized to update categories for this user.",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=404,
+     * description="Not Found: User not found.",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=422,
+     * description="Validation Error",
+     * @OA\JsonContent(
+     * @OA\Property(property="message", type="string", example="The given data was invalid."),
+     * @OA\Property(
+     * property="errors",
+     * type="object",
+     * @OA\Property(
+     * property="categories",
+     * type="array",
+     * @OA\Items(type="string", example="The categories field is required.")
+     * )
+     * )
+     * )
+     * ),
+     * @OA\Response(
+     * response=500,
+     * description="Internal Server Error",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * )
+     * )
+     */
+    public function updateUserCategory(UpdateUserCategoryRequest $request, string $user): JsonResponse
+    {
+         $checkAuthUser = $this->ensureAuthenticated();
+
+        if ($checkAuthUser) {
+            return $checkAuthUser;
+        }
+
+        try {
+            $foundUser = User::where('id', $user)
+                            ->orWhere('slug', $user)
+                            ->first();
+
+            if (!$foundUser) {
+                return response()->json([
+                    'error' => 'User not found'
+                ], 404);
+            }
+
+            if (Auth::user() !== $foundUser && !Auth::user()->isSuperAdmin()) {
+                return response()->json([
+                    "errors" => "You are not authorized to update categories for this user."
+                ], 403);
+            }
+
+            $categoryIds = $request->input('categories');
+
+            $foundUser->categories()->sync($categoryIds);
+
+            return response()->json([
+                "Success" => "Categories updated successfully.",
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error($e);
+            return response()->json([
+                "errors" => "An unexpected error occurred: " . $e->getMessage()
             ], 500);
         }
     }
