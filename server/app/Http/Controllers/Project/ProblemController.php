@@ -66,6 +66,63 @@ class ProblemController extends Controller
 
     /**
      * @OA\Get(
+     * path="/api/problems/company",
+     * operationId="getCompanyProblems",
+     * tags={"Problems"},
+     * summary="Get all problems for a company",
+     * description="Retrieves a paginated list of all problems for a company. This endpoint is accessible to authenticated company users.",
+     * security={{"sanctum": {}}},
+     * @OA\Parameter(
+     * name="page",
+     * in="query",
+     * description="Page number for pagination",
+     * required=false,
+     * @OA\Schema(type="integer", default=1)
+     * ),
+     * @OA\Response(
+     * response=200,
+     * description="Successful operation",
+     * @OA\JsonContent(ref="#/components/schemas/ProblemPagination")
+     * ),
+     * @OA\Response(
+     * response=401,
+     * description="Unauthenticated",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=403,
+     * description="Forbidden: You are not authorized to view this company's problems. (e.g., not a company user).",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
+     * response=500,
+     * description="Internal Server Error",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * )
+     * )
+     */
+    public function companyIndex()
+    {
+        if (Auth::user()->role !== 'company') {
+            return response()->json([
+                "errors" => 'You are not authorized to view this company\'s problems.'
+            ], 403);
+        }
+
+        try {
+            $user = Auth::user();
+            $problems = Problem::where('company_id', $user->id)->paginate(10);
+            return response()->json($problems, 200);
+        } catch (\Exception $e) {
+            Log::error($e);
+            return response()->json([
+                "errors" => 'An unexpected error occurred: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * @OA\Get(
      * path="/api/problems/{problem}",
      * operationId="getProblemById",
      * tags={"Problems"},
@@ -104,7 +161,7 @@ class ProblemController extends Controller
     public function show(string $problem)
     {
         try {
-            $problem = Problem::find($problem);
+            $problem = Problem::with('skillsets', 'company:id,first_name,last_name')->find($problem);
 
             if (!$problem) {
                 return response()->json([
@@ -112,9 +169,13 @@ class ProblemController extends Controller
                 ], 404);
             }
 
-            $problem->load('skillsets');
+            $problemArray = $problem->toArray();
+            if ($problem->company) {
+                $problemArray['company_name'] = $problem->company->first_name . ' ' . $problem->company->last_name;
+                unset($problemArray['company']); //Removing company object
+            }
 
-            return response()->json($problem, 200);
+            return response()->json($problemArray, 200);
         } catch (\Exception $e) {
             Log::error($e);
             return response()->json([
@@ -259,7 +320,7 @@ class ProblemController extends Controller
      * @OA\Property(property="budget", type="integer", example=30000, description="Updated budget.", nullable=true),
      * @OA\Property(property="timeline_value", type="integer", example=4, description="Updated timeline value.", nullable=true),
      * @OA\Property(property="timeline_unit", type="string", enum={"day", "week", "month", "year"}, example="month", description="Updated timeline unit.", nullable=true),
-     * @OA\Property(property="status", type="string", enum={"open", "closed", "cancelled"}, example="closed", description="Updated problem status.", nullable=true),
+     * @OA\Property(property="status", type="string", enum={"open", "cancelled"}, example="open", description="Updated problem status.", nullable=true),
      * @OA\Property(
      * property="skills",
      * type="array",

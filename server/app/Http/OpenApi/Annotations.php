@@ -177,7 +177,7 @@ use OpenApi\Annotations as OA;
  * @OA\Property(property="budget", type="integer", description="Budget for the problem"),
  * @OA\Property(property="timeline_value", type="integer", description="Numerical value for the timeline"),
  * @OA\Property(property="timeline_unit", type="string", enum={"day", "week", "month", "year"}, description="Unit for the timeline value"),
- * @OA\Property(property="status", type="string", enum={"open", "sold", "closed", "cancelled"}, description="Current status of the problem"),
+ * @OA\Property(property="status", type="string", enum={"open", "sold", "cancelled"}, description="Current status of the problem"),
  * @OA\Property(property="created_at", type="string", format="date-time", description="Timestamp when the problem was created"),
  * @OA\Property(property="updated_at", type="string", format="date-time", description="Timestamp when the problem was last updated"),
  * example={
@@ -240,7 +240,7 @@ use OpenApi\Annotations as OA;
  * @OA\Property(property="problem_id", type="integer", format="int64", description="ID of the problem the proposal is for"),
  * @OA\Property(property="title", type="string", description="Title of the proposal"),
  * @OA\Property(property="description", type="string", description="Full description of the proposal"),
- * @OA\Property(property="status", type="string", enum={"submitted", "under_review", "accepted", "rejected"}, description="Current status of the proposal"),
+ * @OA\Property(property="status", type="string", enum={"submitted", "accepted", "rejected"}, description="Current status of the proposal"),
  * @OA\Property(property="created_at", type="string", format="date-time", description="Timestamp when the proposal was created"),
  * @OA\Property(property="updated_at", type="string", format="date-time", description="Timestamp when the proposal was last updated"),
  * example={

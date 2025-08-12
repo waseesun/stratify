@@ -15,15 +15,15 @@ class UpdateProblemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category_id' => ['nullable', 'exists:categories,id'],
-            'title' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'budget' => ['nullable', 'integer', 'min:0'],
-            'timeline_value' => ['nullable', 'integer', 'min:1'],
-            'timeline_unit' => ['nullable', Rule::in(['day', 'week', 'month', 'year'])],
-            'status' => ['nullable', Rule::in(['open', 'closed', 'cancelled'])],
+            'category_id' => ['sometimes', 'exists:categories,id'],
+            'title' => ['sometimes', 'string', 'max:255'],
+            'description' => ['sometimes', 'string'],
+            'budget' => ['sometimes', 'integer', 'min:0'],
+            'timeline_value' => ['sometimes', 'integer', 'min:1'],
+            'timeline_unit' => ['sometimes', Rule::in(['day', 'week', 'month', 'year'])],
+            'status' => ['sometimes', Rule::in(['open', 'cancelled'])],
 
-            'skills' => ['nullable', 'array', 'min:1'],
+            'skills' => ['sometimes', 'array', 'min:1'],
             'skills.*' => ['required', 'string', 'max:100'],
         ];
     }

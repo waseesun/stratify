@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('problem_id')->constrained('problems')->onDelete('cascade');
             $table->string('title');
             $table->text('description');
-            $table->enum('status', ['submitted', 'under_review', 'accepted', 'rejected'])->default('submitted');
+            $table->enum('status', ['submitted', 'accepted', 'rejected'])->default('submitted');
             $table->timestamps();
         });
     }
