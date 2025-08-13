@@ -161,7 +161,31 @@ class ProblemController extends Controller
     public function show(string $problem)
     {
         try {
-            $problem = Problem::with('skillsets', 'company:id,first_name,last_name')->find($problem);
+            $user = Auth::user();
+
+            // Start building the query
+            $query = Problem::with('skillsets', 'company:id,first_name,last_name');
+
+            // Add proposals based on the user's role
+            if ($user->is_admin) {
+                // Admin sees all proposals
+                $query->with(['proposals.provider:id,first_name,last_name']);
+            } elseif ($user->isCompany()) {
+                // Check if the user is the owner of the problem
+                $problem = $query->find($problem);
+                if ($problem && $problem->company_id == $user->id) {
+                    $query->with(['proposals.provider:id,first_name,last_name']);
+                }
+            } elseif ($user->isProvider()) {
+                // Provider only sees their own proposal
+                $query->with(['proposals' => function ($q) use ($user) {
+                    $q->where('provider_id', $user->id)
+                    ->with('provider:id, first_name, last_name')
+                    ->select('id', 'provider_id', 'title');
+                }]);
+            }
+            
+            $problem = $query->find($problem);
 
             if (!$problem) {
                 return response()->json([
