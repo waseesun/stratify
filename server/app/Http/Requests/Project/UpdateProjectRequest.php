@@ -12,7 +12,7 @@ class UpdateProjectRequest extends BaseRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -26,7 +26,7 @@ class UpdateProjectRequest extends BaseRequest
             'fee' => ['sometimes', 'integer', 'min:0'],
             'status' => ['sometimes', Rule::in(['completed', 'cancelled'])],
             'start_date' => ['sometimes', 'date'],
-            'end_date' => ['sometimes', 'date', Rule::after('start_date')],
+            'end_date' => ['sometimes', 'date', 'after:start_date'],
         ];
     }
 
