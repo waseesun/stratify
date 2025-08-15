@@ -171,7 +171,11 @@ class ProposalController extends Controller
     public function show(string $proposal): JsonResponse
     {
         try {
-            $proposal = Proposal::with(['docs', 'provider:id,first_name,last_name'])->find($proposal);
+            $proposal = Proposal::with([
+                'docs', 
+                'provider:id,username',
+                'problem:id,company_id,title'
+            ])->find($proposal);
 
             if (!$proposal) {
                 return response()->json([
@@ -192,7 +196,7 @@ class ProposalController extends Controller
             $proposalArray = $proposal->toArray();
 
             if ($proposal->provider) {
-                $proposalArray['provider_name'] = $proposal->provider->first_name . ' ' . $proposal->provider->last_name;
+                $proposalArray['provider_name'] = $proposal->provider->username;
                 unset($proposalArray['provider']); // Removing the provider object
             }
 
@@ -273,24 +277,22 @@ class ProposalController extends Controller
      */
     public function create(RegisterProposalRequest $request): JsonResponse
     {
-        if (
-        Auth::user()->role !== 'provider' &&
-        Auth::user()->id !== $request->provider_id &&
-        !Auth::user()->isSuperAdmin()
-        ){
+        if (Auth::user()->id !== (int) $request->provider_id && !Auth::user()->isSuperAdmin()){
             return response()->json([
                 "errors" => "You are not authorized to create a proposal for this provider ID."
             ], 403);
         }
         
         $validated = $request->validated();
-        $proposalData = Arr::except($validated, ['docs']);
-        $proposalDocsData = $validated['docs'];
+        $proposalDocsData = Arr::get($validated, 'docs');
+        $proposalData = $proposalDocsData ? Arr::except($validated, ['docs']) : $validated;
 
         try {
             $proposal = Proposal::create($proposalData);
             
-            $this->handleDocs($proposal, $proposalDocsData);
+            if ($proposalDocsData !== null) {
+                $this->handleDocs($proposal, $proposalDocsData);
+            }
 
             return response()->json([
                 "success" => "Proposal created successfully."
@@ -400,8 +402,8 @@ class ProposalController extends Controller
             }
             
             $validated = $request->validated();
-            $proposalData = Arr::except($validated, ['docs']);
             $proposalDocsData = Arr::get($validated, 'docs');
+            $proposalData = $proposalDocsData ? Arr::except($validated, ['docs']) : $validated;
 
             $proposal->update($proposalData);
 

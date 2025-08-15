@@ -163,29 +163,8 @@ class ProblemController extends Controller
         try {
             $user = Auth::user();
 
-            // Start building the query
-            $query = Problem::with('skillsets', 'company:id,first_name,last_name');
-
-            // Add proposals based on the user's role
-            if ($user->is_admin) {
-                // Admin sees all proposals
-                $query->with(['proposals.provider:id,first_name,last_name']);
-            } elseif ($user->isCompany()) {
-                // Check if the user is the owner of the problem
-                $problem = $query->find($problem);
-                if ($problem && $problem->company_id == $user->id) {
-                    $query->with(['proposals.provider:id,first_name,last_name']);
-                }
-            } elseif ($user->isProvider()) {
-                // Provider only sees their own proposal
-                $query->with(['proposals' => function ($q) use ($user) {
-                    $q->where('provider_id', $user->id)
-                    ->with('provider:id, first_name, last_name')
-                    ->select('id', 'provider_id', 'title');
-                }]);
-            }
-            
-            $problem = $query->find($problem);
+            $problem = Problem::with('skillsets', 'company:id,username')
+                        ->find($problem);
 
             if (!$problem) {
                 return response()->json([
@@ -193,9 +172,29 @@ class ProblemController extends Controller
                 ], 404);
             }
 
+            if (
+                $user->isAdmin() ||
+                ($user->isCompany() && $problem->company_id == $user->id)
+            ) {
+                $problem->load([
+                    'proposals' => function ($q) {
+                        $q->select('id', 'problem_id', 'provider_id', 'title', 'status')
+                        ->with('provider:id,username');
+                    }
+                ]);
+            } elseif ($user->isProvider()) {
+                $problem->load([
+                    'proposals' => function ($q) use ($user) {
+                        $q->where('provider_id', $user->id)
+                        ->select('id', 'problem_id', 'provider_id', 'title', 'status')
+                        ->with('provider:id,username');
+                    }
+                ]);
+            }
+
             $problemArray = $problem->toArray();
             if ($problem->company) {
-                $problemArray['company_name'] = $problem->company->first_name . ' ' . $problem->company->last_name;
+                $problemArray['company_name'] = $problem->company->username;
                 unset($problemArray['company']); //Removing company object
             }
 
@@ -282,11 +281,7 @@ class ProblemController extends Controller
      */
     public function create(RegisterProblemRequest $request): JsonResponse
     {
-        if (
-            Auth::user()->role !== 'company' &&
-            Auth::user()->id !== $request->company_id && 
-            !Auth::user()->isSuperAdmin()
-        ) {
+        if (Auth::user()->id !== (int) $request->company_id && !Auth::user()->isSuperAdmin()) {
             return response()->json([
                 "errors" => "You are not authorized to create a problem for this company ID."
             ], 403);

@@ -27,7 +27,7 @@ class UpdateProposalRequest extends BaseRequest
             'description' => ['sometimes', 'string'],
 
             'docs' => ['sometimes', 'array', 'min:1'],
-            'docs.*' => ['required', 'file', 'mimes:pdf', 'max:10240'], // 10MB
+            'docs.*' => ['required', 'file', 'mimes:pdf', 'max:5120'], // 5MB
         ];
     }
 
@@ -44,7 +44,7 @@ class UpdateProposalRequest extends BaseRequest
             'docs.*.required' => 'Each document file is required.',
             'docs.*.file' => 'Each document must be a file.',
             'docs.*.mimes' => 'Each document must be a PDF file.',
-            'docs.*.max' => 'Each document may not be greater than 10MB.',
+            'docs.*.max' => 'Each document may not be greater than 5MB.',
         ];
     }
 }

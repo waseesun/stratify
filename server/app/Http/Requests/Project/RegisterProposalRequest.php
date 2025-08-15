@@ -3,7 +3,8 @@
 namespace App\Http\Requests\Project;
 
 use App\Http\Requests\BaseRequest;
-use Illuminate\Validation\Rule;
+use App\Rules\IsProviderUser;
+
 
 class RegisterProposalRequest extends BaseRequest
 {
@@ -23,13 +24,13 @@ class RegisterProposalRequest extends BaseRequest
     public function rules(): array
     {
         return [
-            'provider_id' => ['required', 'exists:users,id'],
+            'provider_id' => ['required', 'exists:users,id', new IsProviderUser],
             'problem_id' => ['required', 'exists:problems,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
 
             'docs' => ['nullable', 'array', 'min:1'],
-            'docs.*' => ['required', 'file', 'mimes:pdf', 'max:10240'], // 10MB
+            'docs.*' => ['required', 'file', 'mimes:pdf', 'max:5120'], // 5MB
         ];
     }
 
@@ -46,7 +47,7 @@ class RegisterProposalRequest extends BaseRequest
             'docs.*.required' => 'Each document file is required.',
             'docs.*.file' => 'Each document must be a file.',
             'docs.*.mimes' => 'Each document must be a PDF file.',
-            'docs.*.max' => 'Each document may not be greater than 10MB.',
+            'docs.*.max' => 'Each document may not be greater than 5MB.',
         ];
     }
 }
