@@ -38,6 +38,11 @@ use OpenApi\Annotations as OA;
  * name="Proposals",
  * description="API Endpoints for Proposal Management"
  * )
+ * 
+ * @OA\Tag(
+ * name="Projects",
+ * description="API Endpoints for Project Management"
+ * )
  *
  * @OA\Schema(
  * schema="ErrorResponse",
@@ -177,7 +182,7 @@ use OpenApi\Annotations as OA;
  * @OA\Property(property="budget", type="integer", description="Budget for the problem"),
  * @OA\Property(property="timeline_value", type="integer", description="Numerical value for the timeline"),
  * @OA\Property(property="timeline_unit", type="string", enum={"day", "week", "month", "year"}, description="Unit for the timeline value"),
- * @OA\Property(property="status", type="string", enum={"open", "sold", "closed", "cancelled"}, description="Current status of the problem"),
+ * @OA\Property(property="status", type="string", enum={"open", "sold", "cancelled"}, description="Current status of the problem"),
  * @OA\Property(property="created_at", type="string", format="date-time", description="Timestamp when the problem was created"),
  * @OA\Property(property="updated_at", type="string", format="date-time", description="Timestamp when the problem was last updated"),
  * example={
@@ -240,7 +245,7 @@ use OpenApi\Annotations as OA;
  * @OA\Property(property="problem_id", type="integer", format="int64", description="ID of the problem the proposal is for"),
  * @OA\Property(property="title", type="string", description="Title of the proposal"),
  * @OA\Property(property="description", type="string", description="Full description of the proposal"),
- * @OA\Property(property="status", type="string", enum={"submitted", "under_review", "accepted", "rejected"}, description="Current status of the proposal"),
+ * @OA\Property(property="status", type="string", enum={"submitted", "accepted", "rejected"}, description="Current status of the proposal"),
  * @OA\Property(property="created_at", type="string", format="date-time", description="Timestamp when the proposal was created"),
  * @OA\Property(property="updated_at", type="string", format="date-time", description="Timestamp when the proposal was last updated"),
  * example={
@@ -295,6 +300,92 @@ use OpenApi\Annotations as OA;
  * @OA\Property(property="total", type="integer", example=14)
  * )
  *
+ * @OA\Schema(
+ * schema="Project",
+ * title="Project",
+ * description="Project model",
+ * @OA\Property(property="id", type="integer", format="int64", description="Project ID"),
+ * @OA\Property(property="problem_id", type="integer", format="int64", description="ID of the associated problem"),
+ * @OA\Property(property="proposal_id", type="integer", format="int64", description="ID of the associated proposal"),
+ * @OA\Property(property="fee", type="integer", description="Agreed-upon fee for the project"),
+ * @OA\Property(property="status", type="string", enum={"in_progress", "completed", "cancelled"}, description="Current status of the project"),
+ * @OA\Property(property="start_date", type="string", format="date", description="Project start date"),
+ * @OA\Property(property="end_date", type="string", format="date", description="Project end date"),
+ * @OA\Property(property="created_at", type="string", format="date-time", description="Timestamp of project creation"),
+ * @OA\Property(property="updated_at", type="string", format="date-time", description="Timestamp of last update"),
+ * example={
+ * "id": 1, "problem_id": 1, "proposal_id": 1, "fee": 15000,
+ * "status": "in_progress", "start_date": "2023-08-01", "end_date": "2023-11-01",
+ * "created_at": "2023-08-01T12:00:00.000000Z", "updated_at": "2023-08-01T12:00:00.000000Z"
+ * }
+ * )
+ *
+ * @OA\Schema(
+ * schema="ProjectPagination",
+ * title="Project Pagination",
+ * description="Paginated list of projects",
+ * @OA\Property(property="current_page", type="integer", example=1),
+ * @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Project")),
+ * @OA\Property(property="first_page_url", type="string", example="http://localhost:8000/api/projects?page=1"),
+ * @OA\Property(property="from", type="integer", example=1),
+ * @OA\Property(property="last_page", type="integer", example=2),
+ * @OA\Property(property="last_page_url", type="string", example="http://localhost:8000/api/projects?page=2"),
+ * @OA\Property(
+ * property="links",
+ * type="array",
+ * @OA\Items(
+ * @OA\Property(property="url", type="string", nullable=true, example="http://localhost:8000/api/projects?page=1"),
+ * @OA\Property(property="label", type="string", example="&laquo; Previous"),
+ * @OA\Property(property="active", type="boolean", example=true)
+ * )
+ * ),
+ * @OA\Property(property="next_page_url", type="string", nullable=true, example="http://localhost:8000/api/projects?page=2"),
+ * @OA\Property(property="path", type="string", example="http://localhost:8000/api/projects"),
+ * @OA\Property(property="per_page", type="integer", example=10),
+ * @OA\Property(property="prev_page_url", type="string", nullable=true, example=null),
+ * @OA\Property(property="to", type="integer", example=10),
+ * @OA\Property(property="total", type="integer", example=14)
+ * )
+ *
+ * @OA\Schema(
+ * schema="ProjectShowResponse",
+ * title="Project Show Response",
+ * description="Detailed project response including company and provider names",
+ * allOf={
+ * @OA\Schema(ref="#/components/schemas/Project"),
+ * @OA\Schema(
+ * @OA\Property(property="provider_name", type="string", description="Username of the project's provider"),
+ * @OA\Property(property="company_name", type="string", description="Username of the project's company")
+ * )
+ * },
+ * example={
+ * "id": 1, "problem_id": 1, "proposal_id": 1, "fee": 15000,
+ * "status": "in_progress", "start_date": "2023-08-01", "end_date": "2023-11-01",
+ * "created_at": "2023-08-01T12:00:00.000000Z", "updated_at": "2023-08-01T12:00:00.000000Z",
+ * "provider_name": "provider1", "company_name": "company1"
+ * }
+ * )
+ *
+ * @OA\Schema(
+ * schema="RegisterProjectRequest",
+ * title="Register Project Request",
+ * required={"problem_id", "proposal_id", "fee", "start_date", "end_date"},
+ * @OA\Property(property="problem_id", type="integer", format="int64", description="ID of the problem to link to the project"),
+ * @OA\Property(property="proposal_id", type="integer", format="int64", description="ID of the accepted proposal"),
+ * @OA\Property(property="fee", type="integer", minLength=0, description="Agreed-upon fee for the project"),
+ * @OA\Property(property="start_date", type="string", format="date", description="Project start date"),
+ * @OA\Property(property="end_date", type="string", format="date", description="Project end date, must be after start_date")
+ * )
+ *
+ * @OA\Schema(
+ * schema="UpdateProjectRequest",
+ * title="Update Project Request",
+ * @OA\Property(property="fee", type="integer", minLength=0, description="Updated project fee", nullable=true),
+ * @OA\Property(property="status", type="string", enum={"completed", "cancelled"}, description="Updated project status", nullable=true),
+ * @OA\Property(property="start_date", type="string", format="date", description="Updated project start date", nullable=true),
+ * @OA\Property(property="end_date", type="string", format="date", description="Updated project end date, must be after start_date", nullable=true)
+ * )
+ * 
  */
 class Annotations
 {

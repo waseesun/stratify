@@ -681,6 +681,75 @@
                 ]
             }
         },
+        "/api/problems/company": {
+            "get": {
+                "tags": [
+                    "Problems"
+                ],
+                "summary": "Get all problems for a company",
+                "description": "Retrieves a paginated list of all problems for a company. This endpoint is accessible to authenticated company users.",
+                "operationId": "getCompanyProblems",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number for pagination",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemPagination"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden: You are not authorized to view this company's problems. (e.g., not a company user).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/problems/{problem}": {
             "get": {
                 "tags": [
@@ -887,10 +956,9 @@
                                         "type": "string",
                                         "enum": [
                                             "open",
-                                            "closed",
                                             "cancelled"
                                         ],
-                                        "example": "closed",
+                                        "example": "open",
                                         "nullable": true
                                     },
                                     "skills": {
@@ -960,6 +1028,410 @@
                     },
                     "404": {
                         "description": "Not Found: Problem not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/projects": {
+            "get": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Get all projects for the authenticated user",
+                "description": "Retrieves a paginated list of projects where the authenticated user is either the company or the provider. Admins see all projects.",
+                "operationId": "getProjects",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number for pagination",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProjectPagination"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Create a new project",
+                "description": "Creates a new project after a proposal has been accepted. The authenticated user must be the company owner of the problem or a super admin.",
+                "operationId": "createProject",
+                "requestBody": {
+                    "description": "Project data to be stored",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegisterProjectRequest"
+                            },
+                            "example": {
+                                "problem_id": 1,
+                                "proposal_id": 1,
+                                "fee": 15000,
+                                "start_date": "2025-08-15",
+                                "end_date": "2025-11-15"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Project created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "string",
+                                            "example": "Project created successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden: You are not authorized to create this project.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/projects/{project}": {
+            "get": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Get a single project by ID",
+                "description": "Retrieves the details of a specific project. Accessible to the project's company, provider, or an admin.",
+                "operationId": "getProjectById",
+                "parameters": [
+                    {
+                        "name": "project",
+                        "in": "path",
+                        "description": "ID of the project to retrieve",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProjectShowResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden: You are not authorized to view this project.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Project not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Delete a project",
+                "description": "Deletes a project. Only the company that owns the project or a super admin can perform this action.",
+                "operationId": "deleteProject",
+                "parameters": [
+                    {
+                        "name": "project",
+                        "in": "path",
+                        "description": "ID of the project to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content: Project deleted successfully."
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden: You are not authorized to delete this project.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Project not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Update an existing project",
+                "description": "Updates the details of an existing project. Only the company that owns the project or a super admin can perform this action.",
+                "operationId": "updateProject",
+                "parameters": [
+                    {
+                        "name": "project",
+                        "in": "path",
+                        "description": "ID of the project to update",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Project data to be updated",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegisterProjectRequest"
+                            },
+                            "example": {
+                                "fee": 20000,
+                                "start_date": "2025-08-15",
+                                "end_date": "2025-11-15",
+                                "status": "completed"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Project updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "string",
+                                            "example": "Project updated successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden: You are not authorized to update this project.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Project not found.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1237,6 +1709,16 @@
                     },
                     "401": {
                         "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden: You are not authorized to view this proposal.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -3295,7 +3777,6 @@
                         "enum": [
                             "open",
                             "sold",
-                            "closed",
                             "cancelled"
                         ]
                     },
@@ -3438,7 +3919,6 @@
                         "type": "string",
                         "enum": [
                             "submitted",
-                            "under_review",
                             "accepted",
                             "rejected"
                         ]
@@ -3566,6 +4046,258 @@
                     }
                 },
                 "type": "object"
+            },
+            "Project": {
+                "title": "Project",
+                "description": "Project model",
+                "properties": {
+                    "id": {
+                        "description": "Project ID",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "problem_id": {
+                        "description": "ID of the associated problem",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "proposal_id": {
+                        "description": "ID of the associated proposal",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "fee": {
+                        "description": "Agreed-upon fee for the project",
+                        "type": "integer"
+                    },
+                    "status": {
+                        "description": "Current status of the project",
+                        "type": "string",
+                        "enum": [
+                            "in_progress",
+                            "completed",
+                            "cancelled"
+                        ]
+                    },
+                    "start_date": {
+                        "description": "Project start date",
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "end_date": {
+                        "description": "Project end date",
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "created_at": {
+                        "description": "Timestamp of project creation",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "description": "Timestamp of last update",
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object",
+                "example": {
+                    "id": 1,
+                    "problem_id": 1,
+                    "proposal_id": 1,
+                    "fee": 15000,
+                    "status": "in_progress",
+                    "start_date": "2023-08-01",
+                    "end_date": "2023-11-01",
+                    "created_at": "2023-08-01T12:00:00.000000Z",
+                    "updated_at": "2023-08-01T12:00:00.000000Z"
+                }
+            },
+            "ProjectPagination": {
+                "title": "Project Pagination",
+                "description": "Paginated list of projects",
+                "properties": {
+                    "current_page": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Project"
+                        }
+                    },
+                    "first_page_url": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/projects?page=1"
+                    },
+                    "from": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "last_page": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "last_page_url": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/projects?page=2"
+                    },
+                    "links": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "url": {
+                                    "type": "string",
+                                    "example": "http://localhost:8000/api/projects?page=1",
+                                    "nullable": true
+                                },
+                                "label": {
+                                    "type": "string",
+                                    "example": "&laquo; Previous"
+                                },
+                                "active": {
+                                    "type": "boolean",
+                                    "example": true
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "next_page_url": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/projects?page=2",
+                        "nullable": true
+                    },
+                    "path": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/projects"
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "prev_page_url": {
+                        "type": "string",
+                        "example": null,
+                        "nullable": true
+                    },
+                    "to": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "total": {
+                        "type": "integer",
+                        "example": 14
+                    }
+                },
+                "type": "object"
+            },
+            "ProjectShowResponse": {
+                "title": "Project Show Response",
+                "description": "Detailed project response including company and provider names",
+                "example": {
+                    "id": 1,
+                    "problem_id": 1,
+                    "proposal_id": 1,
+                    "fee": 15000,
+                    "status": "in_progress",
+                    "start_date": "2023-08-01",
+                    "end_date": "2023-11-01",
+                    "created_at": "2023-08-01T12:00:00.000000Z",
+                    "updated_at": "2023-08-01T12:00:00.000000Z",
+                    "provider_name": "provider1",
+                    "company_name": "company1"
+                },
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Project"
+                    },
+                    {
+                        "properties": {
+                            "provider_name": {
+                                "description": "Username of the project's provider",
+                                "type": "string"
+                            },
+                            "company_name": {
+                                "description": "Username of the project's company",
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
+            },
+            "RegisterProjectRequest": {
+                "title": "Register Project Request",
+                "required": [
+                    "problem_id",
+                    "proposal_id",
+                    "fee",
+                    "start_date",
+                    "end_date"
+                ],
+                "properties": {
+                    "problem_id": {
+                        "description": "ID of the problem to link to the project",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "proposal_id": {
+                        "description": "ID of the accepted proposal",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "fee": {
+                        "description": "Agreed-upon fee for the project",
+                        "type": "integer",
+                        "minLength": 0
+                    },
+                    "start_date": {
+                        "description": "Project start date",
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "end_date": {
+                        "description": "Project end date, must be after start_date",
+                        "type": "string",
+                        "format": "date"
+                    }
+                },
+                "type": "object"
+            },
+            "UpdateProjectRequest": {
+                "title": "Update Project Request",
+                "properties": {
+                    "fee": {
+                        "description": "Updated project fee",
+                        "type": "integer",
+                        "minLength": 0,
+                        "nullable": true
+                    },
+                    "status": {
+                        "description": "Updated project status",
+                        "type": "string",
+                        "enum": [
+                            "completed",
+                            "cancelled"
+                        ],
+                        "nullable": true
+                    },
+                    "start_date": {
+                        "description": "Updated project start date",
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "end_date": {
+                        "description": "Updated project end date, must be after start_date",
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
             }
         },
         "securitySchemes": {
@@ -3591,6 +4323,10 @@
         {
             "name": "Proposals",
             "description": "API Endpoints for Proposal Management"
+        },
+        {
+            "name": "Projects",
+            "description": "API Endpoints for Project Management"
         }
     ]
 }

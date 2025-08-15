@@ -59,7 +59,7 @@ class ProblemFactory extends Factory
             'budget' => $this->faker->numberBetween(1000, 100000),
             'timeline_value' => $this->faker->numberBetween(1, 12),
             'timeline_unit' => $this->faker->randomElement(['day', 'week', 'month', 'year']),
-            'status' => $this->faker->randomElement(['open', 'sold', 'closed', 'cancelled']),
+            'status' => $this->faker->randomElement(['open', 'sold', 'cancelled']),
         ];
     }
 }

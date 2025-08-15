@@ -23,11 +23,11 @@ class UpdateProposalRequest extends BaseRequest
     public function rules(): array
     {
         return [
-            'title' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'title' => ['sometimes', 'string', 'max:255'],
+            'description' => ['sometimes', 'string'],
 
-            'docs' => ['nullable', 'array', 'min:1'],
-            'docs.*' => ['required', 'file', 'mimes:pdf', 'max:10240'], // 10MB
+            'docs' => ['sometimes', 'array', 'min:1'],
+            'docs.*' => ['required', 'file', 'mimes:pdf', 'max:5120'], // 5MB
         ];
     }
 
@@ -44,7 +44,7 @@ class UpdateProposalRequest extends BaseRequest
             'docs.*.required' => 'Each document file is required.',
             'docs.*.file' => 'Each document must be a file.',
             'docs.*.mimes' => 'Each document must be a PDF file.',
-            'docs.*.max' => 'Each document may not be greater than 10MB.',
+            'docs.*.max' => 'Each document may not be greater than 5MB.',
         ];
     }
 }

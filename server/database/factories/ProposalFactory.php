@@ -43,7 +43,7 @@ class ProposalFactory extends Factory
             'problem_id' => $problem->id,
             'title' => $this->faker->sentence(),
             'description' => $this->faker->paragraph(),
-            'status' => $this->faker->randomElement(['submitted', 'under_review', 'accepted', 'rejected']),
+            'status' => $this->faker->randomElement(['submitted', 'accepted', 'rejected']),
         ];
     }
 }

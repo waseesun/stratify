@@ -105,7 +105,18 @@ class ProposalController extends Controller
     public function index(): JsonResponse
     {
         try {
-            $proposals = Proposal::paginate(10);
+            $user = Auth::user();
+            $query = Proposal::query();
+
+            if (!$user->is_admin) {
+                $userId = $user->id;
+                $query->where('provider_id', $userId)
+                    ->orWhereHas('problem', function ($q) use ($userId) {
+                        $q->where('company_id', $userId);
+                    });
+            }
+
+            $proposals = $query->paginate(10);
             return response()->json($proposals, 200);
         } catch (\Exception $e) {
             Log::error($e);
@@ -141,6 +152,11 @@ class ProposalController extends Controller
      * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
      * ),
      * @OA\Response(
+     * response=403,
+     * description="Forbidden: You are not authorized to view this proposal.",
+     * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     * ),
+     * @OA\Response(
      * response=404,
      * description="Not Found: Proposal not found.",
      * @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
@@ -155,7 +171,11 @@ class ProposalController extends Controller
     public function show(string $proposal): JsonResponse
     {
         try {
-            $proposal = Proposal::find($proposal);
+            $proposal = Proposal::with([
+                'docs', 
+                'provider:id,username',
+                'problem:id,company_id,title'
+            ])->find($proposal);
 
             if (!$proposal) {
                 return response()->json([
@@ -163,9 +183,24 @@ class ProposalController extends Controller
                 ], 404);
             }
 
-            $proposal->load('docs');
+            if (
+                $proposal->provider_id != Auth::user()->id &&
+                $proposal->problem->company_id != Auth::user()->id &&
+                !Auth::user()->is_admin
+            ) {
+                return response()->json([
+                    "errors" => 'You are not authorized to view this proposal.'
+                ], 403);
+            }
+            
+            $proposalArray = $proposal->toArray();
 
-            return response()->json($proposal, 200);
+            if ($proposal->provider) {
+                $proposalArray['provider_name'] = $proposal->provider->username;
+                unset($proposalArray['provider']); // Removing the provider object
+            }
+
+            return response()->json($proposalArray, 200);
         } catch (\Exception $e) {
             Log::error($e);
             return response()->json([
@@ -242,24 +277,22 @@ class ProposalController extends Controller
      */
     public function create(RegisterProposalRequest $request): JsonResponse
     {
-        if (
-        Auth::user()->role !== 'provider' &&
-        Auth::user()->id !== $request->provider_id &&
-        !Auth::user()->isSuperAdmin()
-        ){
+        if (Auth::user()->id !== (int) $request->provider_id && !Auth::user()->isSuperAdmin()){
             return response()->json([
                 "errors" => "You are not authorized to create a proposal for this provider ID."
             ], 403);
         }
         
         $validated = $request->validated();
-        $proposalData = Arr::except($validated, ['docs']);
-        $proposalDocsData = $validated['docs'];
+        $proposalDocsData = Arr::get($validated, 'docs');
+        $proposalData = $proposalDocsData ? Arr::except($validated, ['docs']) : $validated;
 
         try {
             $proposal = Proposal::create($proposalData);
             
-            $this->handleDocs($proposal, $proposalDocsData);
+            if ($proposalDocsData !== null) {
+                $this->handleDocs($proposal, $proposalDocsData);
+            }
 
             return response()->json([
                 "success" => "Proposal created successfully."
@@ -369,8 +402,8 @@ class ProposalController extends Controller
             }
             
             $validated = $request->validated();
-            $proposalData = Arr::except($validated, ['docs']);
             $proposalDocsData = Arr::get($validated, 'docs');
+            $proposalData = $proposalDocsData ? Arr::except($validated, ['docs']) : $validated;
 
             $proposal->update($proposalData);
 
