@@ -12,6 +12,10 @@ use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
+    public function __construct() {
+        $this->middleware('auth:sanctum');
+    }
+    
     /**
      * @OA\Get(
      * path="/api/transactions",
