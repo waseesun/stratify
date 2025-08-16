@@ -7,6 +7,8 @@ use App\Http\Controllers\Project\CategoryController;
 use App\Http\Controllers\Project\ProblemController;
 use App\Http\Controllers\Project\ProposalController;
 use App\Http\Controllers\Project\ProjectController;
+use App\Http\Controllers\Project\TransactionController;
+use App\Http\Controllers\Misc\ReviewController;
 
 Route::post('/login', [AuthController::class, 'login'])
     ->name('api.login');
@@ -101,4 +103,28 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])
         ->name('api.deleteProject');
+
+    Route::get('/transactions', [TransactionController::class, 'index'])
+        ->name('api.getTransactions');
+
+    Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])
+        ->name('api.getTransaction');
+
+    Route::post('/transactions', [TransactionController::class, 'create'])
+        ->name('api.createTransaction');
+
+    Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy'])
+        ->name('api.deleteTransaction');
+
+    Route::get('/reviews/{user}', [ReviewController::class, 'index'])
+        ->name('api.getReviews');
+
+    Route::post('/reviews', [ReviewController::class, 'create'])
+        ->name('api.createReview');
+
+    Route::patch('/reviews/{review}', [ReviewController::class, 'update'])
+        ->name('api.updateReview');
+
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])
+        ->name('api.deleteReview');
     });
