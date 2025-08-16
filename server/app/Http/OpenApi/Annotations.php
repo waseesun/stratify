@@ -43,6 +43,11 @@ use OpenApi\Annotations as OA;
  * name="Projects",
  * description="API Endpoints for Project Management"
  * )
+ * 
+ * @OA\Tag(
+ * name="Transactions",
+ * description="API Endpoints for Transaction Management"
+ * )
  *
  * @OA\Schema(
  * schema="ErrorResponse",
@@ -384,6 +389,62 @@ use OpenApi\Annotations as OA;
  * @OA\Property(property="status", type="string", enum={"completed", "cancelled"}, description="Updated project status", nullable=true),
  * @OA\Property(property="start_date", type="string", format="date", description="Updated project start date", nullable=true),
  * @OA\Property(property="end_date", type="string", format="date", description="Updated project end date, must be after start_date", nullable=true)
+ * )
+ * 
+ * @OA\Schema(
+ * schema="Transaction",
+ * title="Transaction",
+ * description="Transaction model",
+ * @OA\Property(property="id", type="integer", format="int64", description="Transaction ID"),
+ * @OA\Property(property="project_id", type="integer", format="int64", description="ID of the associated project"),
+ * @OA\Property(property="provider_id", type="integer", format="int64", description="ID of the provider involved in the transaction"),
+ * @OA\Property(property="company_id", type="integer", format="int64", description="ID of the company involved in the transaction"),
+ * @OA\Property(property="milestone_name", type="string", description="Name of the transaction milestone"),
+ * @OA\Property(property="amount", type="integer", description="Amount of the transaction"),
+ * @OA\Property(property="release_date", type="string", format="date", description="Date the payment was released"),
+ * @OA\Property(property="created_at", type="string", format="date-time", description="Timestamp of transaction creation"),
+ * @OA\Property(property="updated_at", type="string", format="date-time", description="Timestamp of last update"),
+ * example={
+ * "id": 1, "project_id": 1, "provider_id": 2, "company_id": 3,
+ * "milestone_name": "Initial Payment", "amount": 5000, "release_date": "2025-08-16",
+ * "created_at": "2025-08-16T12:00:00.000000Z", "updated_at": "2025-08-16T12:00:00.000000Z"
+ * }
+ * )
+ *
+ * @OA\Schema(
+ * schema="TransactionPagination",
+ * title="Transaction Pagination",
+ * description="Paginated list of transactions",
+ * @OA\Property(property="current_page", type="integer", example=1),
+ * @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Transaction")),
+ * @OA\Property(property="first_page_url", type="string", example="http://localhost:8000/api/transactions?page=1"),
+ * @OA\Property(property="from", type="integer", example=1),
+ * @OA\Property(property="last_page", type="integer", example=2),
+ * @OA\Property(property="last_page_url", type="string", example="http://localhost:8000/api/transactions?page=2"),
+ * @OA\Property(
+ * property="links",
+ * type="array",
+ * @OA\Items(
+ * @OA\Property(property="url", type="string", nullable=true, example="http://localhost:8000/api/transactions?page=1"),
+ * @OA\Property(property="label", type="string", example="&laquo; Previous"),
+ * @OA\Property(property="active", type="boolean", example=true)
+ * )
+ * ),
+ * @OA\Property(property="next_page_url", type="string", nullable=true, example="http://localhost:8000/api/transactions?page=2"),
+ * @OA\Property(property="path", type="string", example="http://localhost:8000/api/transactions"),
+ * @OA\Property(property="per_page", type="integer", example=10),
+ * @OA\Property(property="prev_page_url", type="string", nullable=true, example=null),
+ * @OA\Property(property="to", type="integer", example=10),
+ * @OA\Property(property="total", type="integer", example=14)
+ * )
+ *
+ * @OA\Schema(
+ * schema="RegisterTransactionRequest",
+ * title="Register Transaction Request",
+ * required={"project_id", "milestone_name", "amount"},
+ * @OA\Property(property="project_id", type="integer", format="int64", description="ID of the associated project"),
+ * @OA\Property(property="milestone_name", type="string", description="Name for the transaction milestone", example="Initial Payment"),
+ * @OA\Property(property="amount", type="integer", minLength=1, description="Amount of the transaction in base currency units", example=5000)
  * )
  * 
  */

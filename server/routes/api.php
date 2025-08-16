@@ -7,6 +7,7 @@ use App\Http\Controllers\Project\CategoryController;
 use App\Http\Controllers\Project\ProblemController;
 use App\Http\Controllers\Project\ProposalController;
 use App\Http\Controllers\Project\ProjectController;
+use App\Http\Controllers\Project\TransactionController;
 
 Route::post('/login', [AuthController::class, 'login'])
     ->name('api.login');
@@ -101,4 +102,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])
         ->name('api.deleteProject');
+
+    Route::get('/transactions', [TransactionController::class, 'index'])
+        ->name('api.getTransactions');
+
+    Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])
+        ->name('api.getTransaction');
+
+    Route::post('/transactions', [TransactionController::class, 'create'])
+        ->name('api.createTransaction');
+
+    Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy'])
+        ->name('api.deleteTransaction');
     });
