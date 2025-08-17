@@ -156,6 +156,212 @@
                 ]
             }
         },
+        "/api/notifications": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get authenticated user's notifications",
+                "description": "Retrieves a paginated list of all notifications for the authenticated user.",
+                "operationId": "getNotifications",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number for pagination",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotificationPagination"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/notifications/{notification}": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get a single notification",
+                "description": "Retrieves a single notification by its ID. Requires authentication and authorization to ensure the user can only view their own notifications.",
+                "operationId": "getNotificationById",
+                "parameters": [
+                    {
+                        "name": "notification",
+                        "in": "path",
+                        "description": "ID of the notification to retrieve",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Notification"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden: Not authorized to view this notification.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Notification not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Delete a notification",
+                "description": "Deletes a single notification by its ID. Requires authentication and authorization to ensure the user can only delete their own notifications.",
+                "operationId": "deleteNotification",
+                "parameters": [
+                    {
+                        "name": "notification",
+                        "in": "path",
+                        "description": "ID of the notification to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successful operation. No content to return."
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden: Not authorized to delete this notification.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Notification not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/reviews/{user}": {
             "get": {
                 "tags": [
@@ -318,7 +524,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "204": {
                         "description": "Review deleted successfully",
                         "content": {
                             "application/json": {
@@ -2549,7 +2755,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "204": {
                         "description": "Transaction deleted successfully",
                         "content": {
                             "application/json": {
@@ -5276,6 +5482,148 @@
                     }
                 },
                 "type": "object"
+            },
+            "Notification": {
+                "title": "Notification",
+                "description": "Notification model",
+                "properties": {
+                    "id": {
+                        "description": "Notification ID",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "user_id": {
+                        "description": "ID of the user the notification belongs to",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "message": {
+                        "description": "The notification message",
+                        "type": "string"
+                    },
+                    "type": {
+                        "description": "The type of notification",
+                        "type": "string",
+                        "enum": [
+                            "info",
+                            "problem",
+                            "proposal",
+                            "project",
+                            "transaction",
+                            "review"
+                        ]
+                    },
+                    "link": {
+                        "description": "URL or link related to the notification",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "is_read": {
+                        "description": "Indicates if the notification has been read",
+                        "type": "boolean"
+                    },
+                    "created_at": {
+                        "description": "Timestamp when the notification was created",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "description": "Timestamp of last update",
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object",
+                "example": {
+                    "id": 1,
+                    "user_id": 1,
+                    "message": "Your proposal has been accepted.",
+                    "type": "proposal",
+                    "link": "/proposals/123",
+                    "is_read": false,
+                    "created_at": "2025-08-16T12:00:00.000000Z",
+                    "updated_at": "2025-08-16T12:00:00.000000Z"
+                }
+            },
+            "NotificationPagination": {
+                "title": "Notification Pagination",
+                "description": "Paginated list of notifications",
+                "properties": {
+                    "current_page": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Notification"
+                        }
+                    },
+                    "first_page_url": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/notifications?page=1"
+                    },
+                    "from": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "last_page": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "last_page_url": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/notifications?page=2"
+                    },
+                    "links": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "url": {
+                                    "type": "string",
+                                    "example": "http://localhost:8000/api/notifications?page=1",
+                                    "nullable": true
+                                },
+                                "label": {
+                                    "type": "string",
+                                    "example": "&laquo; Previous"
+                                },
+                                "active": {
+                                    "type": "boolean",
+                                    "example": true
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "next_page_url": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/notifications?page=2",
+                        "nullable": true
+                    },
+                    "path": {
+                        "type": "string",
+                        "example": "http://localhost:8000/api/notifications"
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "prev_page_url": {
+                        "type": "string",
+                        "example": null,
+                        "nullable": true
+                    },
+                    "to": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "total": {
+                        "type": "integer",
+                        "example": 14
+                    }
+                },
+                "type": "object"
             }
         },
         "securitySchemes": {
@@ -5313,6 +5661,10 @@
         {
             "name": "Reviews",
             "description": "API Endpoints for Reviews"
+        },
+        {
+            "name": "Notifications",
+            "description": "API Endpoints for Notifications"
         }
     ]
 }

@@ -9,6 +9,7 @@ use App\Http\Controllers\Project\ProposalController;
 use App\Http\Controllers\Project\ProjectController;
 use App\Http\Controllers\Project\TransactionController;
 use App\Http\Controllers\Misc\ReviewController;
+use App\Http\Controllers\Misc\NotificationController;
 
 Route::post('/login', [AuthController::class, 'login'])
     ->name('api.login');
@@ -127,4 +128,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])
         ->name('api.deleteReview');
+
+    Route::get('/notifications', [NotificationController::class, 'index'])
+        ->name('api.getNotifications');
+
+    Route::get('/notifications/{notification}', [NotificationController::class, 'show'])
+        ->name('api.getNotification');
+
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])
+        ->name('api.deleteNotification');
     });

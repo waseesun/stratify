@@ -53,6 +53,11 @@ use OpenApi\Annotations as OA;
  * name="Reviews",
  * description="API Endpoints for Reviews"
  * )
+ * 
+ * @OA\Tag(
+ * name="Notifications",
+ * description="API Endpoints for Notifications"
+ * )
  *
  * @OA\Schema(
  * schema="ErrorResponse",
@@ -514,6 +519,51 @@ use OpenApi\Annotations as OA;
  * @OA\Property(property="comment", type="string", description="The new review comment", example="This user was very good, but communication could be better.")
  * )
  * 
+ * @OA\Schema(
+ * schema="Notification",
+ * title="Notification",
+ * description="Notification model",
+ * @OA\Property(property="id", type="integer", format="int64", description="Notification ID"),
+ * @OA\Property(property="user_id", type="integer", format="int64", description="ID of the user the notification belongs to"),
+ * @OA\Property(property="message", type="string", description="The notification message"),
+ * @OA\Property(property="type", type="string", enum={"info", "problem", "proposal", "project", "transaction", "review"}, description="The type of notification"),
+ * @OA\Property(property="link", type="string", nullable=true, description="URL or link related to the notification"),
+ * @OA\Property(property="is_read", type="boolean", description="Indicates if the notification has been read"),
+ * @OA\Property(property="created_at", type="string", format="date-time", description="Timestamp when the notification was created"),
+ * @OA\Property(property="updated_at", type="string", format="date-time", description="Timestamp of last update"),
+ * example={
+ * "id": 1, "user_id": 1, "message": "Your proposal has been accepted.",
+ * "type": "proposal", "link": "/proposals/123", "is_read": false,
+ * "created_at": "2025-08-16T12:00:00.000000Z", "updated_at": "2025-08-16T12:00:00.000000Z"
+ * }
+ * )
+ *
+ * @OA\Schema(
+ * schema="NotificationPagination",
+ * title="Notification Pagination",
+ * description="Paginated list of notifications",
+ * @OA\Property(property="current_page", type="integer", example=1),
+ * @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Notification")),
+ * @OA\Property(property="first_page_url", type="string", example="http://localhost:8000/api/notifications?page=1"),
+ * @OA\Property(property="from", type="integer", example=1),
+ * @OA\Property(property="last_page", type="integer", example=2),
+ * @OA\Property(property="last_page_url", type="string", example="http://localhost:8000/api/notifications?page=2"),
+ * @OA\Property(
+ * property="links",
+ * type="array",
+ * @OA\Items(
+ * @OA\Property(property="url", type="string", nullable=true, example="http://localhost:8000/api/notifications?page=1"),
+ * @OA\Property(property="label", type="string", example="&laquo; Previous"),
+ * @OA\Property(property="active", type="boolean", example=true)
+ * )
+ * ),
+ * @OA\Property(property="next_page_url", type="string", nullable=true, example="http://localhost:8000/api/notifications?page=2"),
+ * @OA\Property(property="path", type="string", example="http://localhost:8000/api/notifications"),
+ * @OA\Property(property="per_page", type="integer", example=10),
+ * @OA\Property(property="prev_page_url", type="string", nullable=true, example=null),
+ * @OA\Property(property="to", type="integer", example=10),
+ * @OA\Property(property="total", type="integer", example=14)
+ * )
  */
 class Annotations
 {

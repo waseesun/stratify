@@ -242,7 +242,7 @@ class TransactionController extends Controller
      * @OA\Schema(type="integer")
      * ),
      * @OA\Response(
-     * response=200,
+     * response=204,
      * description="Transaction deleted successfully",
      * @OA\JsonContent(type="object", nullable=true)
      * ),
@@ -285,7 +285,7 @@ class TransactionController extends Controller
             }
 
             $transaction->delete();
-            return response()->json(null, 200);
+            return response()->json(null, 204);
         } catch (\Exception $e) {
             Log::error($e);
             return response()->json([

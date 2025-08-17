@@ -233,7 +233,7 @@ class ReviewController extends Controller
      * @OA\Schema(type="integer")
      * ),
      * @OA\Response(
-     * response=200,
+     * response=204,
      * description="Review deleted successfully",
      * @OA\JsonContent(
      * @OA\Property(property="success", type="string", example="Your review for 123 has been deleted.")
@@ -283,9 +283,7 @@ class ReviewController extends Controller
 
             $review->delete();
 
-            return response()->json([
-                'success' => 'Your review for ' . $review->reviewee_id . ' has been deleted.'
-            ], 200);
+            return response()->json(null, 204);
         } catch (\Exception $e) {
             Log::error($e);
             return response()->json([
