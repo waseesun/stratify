@@ -200,12 +200,6 @@ class UserController extends Controller
                 return response()->json(['error' => 'User not found'], 404);
             }
 
-            if (Auth::user()->id !== $foundUser->id && !Auth::user()->isAdmin()) {
-                return response()->json([
-                    "errors" => "You are not authorized to view this user."
-                ], 403);
-            }
-
             $foundUser->load('categories');
 
             if ($foundUser->role === 'provider') {
