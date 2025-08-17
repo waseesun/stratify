@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Project;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Project\RegisterProposalRequest;
 use App\Http\Requests\Project\UpdateProposalRequest;
+use App\Models\Notification;
+use App\Models\User;
 use App\Models\Proposal;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
@@ -15,7 +17,8 @@ use Illuminate\Http\JsonResponse;
 
 class ProposalController extends Controller
 {
-    public function __construct() {
+    public function __construct()
+    {
         $this->middleware('auth:sanctum');
     }
 
@@ -49,7 +52,7 @@ class ProposalController extends Controller
                 $path = $file->store('proposal_docs', 'public');
                 $proposalDocs[] = ['file_url' => Storage::url($path)];
             }
-            
+
             $proposal->docs()->createMany($proposalDocs);
         }
     }
@@ -172,7 +175,7 @@ class ProposalController extends Controller
     {
         try {
             $proposal = Proposal::with([
-                'docs', 
+                'docs',
                 'provider:id,username',
                 'problem:id,company_id,title'
             ])->find($proposal);
@@ -192,7 +195,7 @@ class ProposalController extends Controller
                     "errors" => 'You are not authorized to view this proposal.'
                 ], 403);
             }
-            
+
             $proposalArray = $proposal->toArray();
 
             if ($proposal->provider) {
@@ -230,21 +233,21 @@ class ProposalController extends Controller
      * )
      * ),
      * @OA\MediaType(
-    * mediaType="multipart/form-data",
-    * @OA\Schema(
-    * @OA\Property(property="provider_id", type="integer", description="ID of the provider submitting the proposal", example=1),
-    * @OA\Property(property="problem_id", type="integer", description="ID of the problem the proposal is for", example=1),
-    * @OA\Property(property="title", type="string", description="Title of the proposal", example="Innovative Solution for E-commerce"),
-    * @OA\Property(property="description", type="string", description="Detailed description of the proposal", example="This proposal outlines a full-stack solution using React and Laravel."),
-    * @OA\Property(
-    * property="docs[]",
-    * type="array",
-    * @OA\Items(type="string", format="binary"),
-    * description="An array of PDF files to be uploaded."
-    * ),
-    * required={"provider_id", "problem_id", "title", "description"}
-    * )
-    * )
+     * mediaType="multipart/form-data",
+     * @OA\Schema(
+     * @OA\Property(property="provider_id", type="integer", description="ID of the provider submitting the proposal", example=1),
+     * @OA\Property(property="problem_id", type="integer", description="ID of the problem the proposal is for", example=1),
+     * @OA\Property(property="title", type="string", description="Title of the proposal", example="Innovative Solution for E-commerce"),
+     * @OA\Property(property="description", type="string", description="Detailed description of the proposal", example="This proposal outlines a full-stack solution using React and Laravel."),
+     * @OA\Property(
+     * property="docs[]",
+     * type="array",
+     * @OA\Items(type="string", format="binary"),
+     * description="An array of PDF files to be uploaded."
+     * ),
+     * required={"provider_id", "problem_id", "title", "description"}
+     * )
+     * )
      * ),
      * @OA\Response(
      * response=201,
@@ -277,21 +280,38 @@ class ProposalController extends Controller
      */
     public function create(RegisterProposalRequest $request): JsonResponse
     {
-        if (Auth::user()->id !== (int) $request->provider_id && !Auth::user()->isSuperAdmin()){
+        if (Auth::user()->id !== (int) $request->provider_id && !Auth::user()->isSuperAdmin()) {
             return response()->json([
                 "errors" => "You are not authorized to create a proposal for this provider ID."
             ], 403);
         }
-        
+
         $validated = $request->validated();
         $proposalDocsData = Arr::get($validated, 'docs');
         $proposalData = $proposalDocsData ? Arr::except($validated, ['docs']) : $validated;
 
         try {
             $proposal = Proposal::create($proposalData);
-            
+
             if ($proposalDocsData !== null) {
                 $this->handleDocs($proposal, $proposalDocsData);
+            }
+
+            Notification::create([
+                'user_id' => Auth::user()->id,
+                'message' => 'Your proposal ' . $proposal->title . ' has been submitted.',
+                'type' => 'proposal',
+                'link' => '/proposal/' . $proposal->id
+            ]);
+
+            $company = User::find($proposal->problem->company_id);
+            if ($company) {
+                Notification::create([
+                    'user_id' => $company->id,
+                    'message' => 'Your problem ' . $proposal->problem->title . ' has a new proposal.',
+                    'type' => 'proposal',
+                    'link' => '/proposal/' . $proposal->id
+                ]);
             }
 
             return response()->json([
@@ -400,7 +420,7 @@ class ProposalController extends Controller
                     "errors" => "You are not authorized to update this proposal."
                 ], 403);
             }
-            
+
             $validated = $request->validated();
             $proposalDocsData = Arr::get($validated, 'docs');
             $proposalData = $proposalDocsData ? Arr::except($validated, ['docs']) : $validated;
@@ -409,7 +429,7 @@ class ProposalController extends Controller
 
             if ($proposalDocsData !== null) {
                 // Delete all previous documents
-                $this->handleDocs($proposal, [], true); 
+                $this->handleDocs($proposal, [], true);
                 // Upload and associate the new documents
                 $this->handleDocs($proposal, $proposalDocsData);
             }
@@ -483,10 +503,10 @@ class ProposalController extends Controller
                     "errors" => "You are not authorized to delete this proposal."
                 ], 403);
             }
-            
+
             // Delete the files
             $this->handleDocs($proposal, [], true);
-            
+
             $proposal->docs()->delete();
             $proposal->delete();
 

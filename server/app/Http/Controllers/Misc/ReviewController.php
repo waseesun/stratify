@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Misc\RegisterReviewRequest;
 use App\Http\Requests\Misc\UpdateReviewRequest;
 use App\Models\Review;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -119,6 +120,12 @@ class ReviewController extends Controller
             $validated['reviewer_id'] = Auth::user()->id;
 
             Review::create($validated);
+
+            Notification::create([
+                'user_id' => $validated['reviewee_id'],
+                'notification' => 'You have a new review from ' . Auth::user()->name,
+                'type' => 'review',
+            ]);
 
             return response()->json([
                 'success' => 'Your review for ' . $validated['reviewee_id'] . ' has been saved.'

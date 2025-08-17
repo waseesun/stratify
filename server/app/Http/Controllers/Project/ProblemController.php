@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Project;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\Problem;
+use App\Models\Notification;
 use App\Http\Requests\Project\RegisterProblemRequest;
 use App\Http\Requests\Project\UpdateProblemRequest;
 use Illuminate\Support\Arr;
@@ -301,6 +303,29 @@ class ProblemController extends Controller
 
             if (!empty($problemSkillsets)) {
                 $problem->skillsets()->createMany($problemSkillsets);
+            }
+
+            // Notification
+            Notification::create([
+                'user_id' => Auth::user()->id,
+                'message' => $problem->title . ' has been registered for you.',
+                'type' => 'problem',
+                'link' => '/problem/' . $problem->id
+            ]);
+
+            $problemCategoryId = $problem->category_id;
+            $providers = User::where('role', 'provider')
+                         ->whereHas('categories', function ($query) use ($problemCategoryId) {
+                             $query->where('categories.id', $problemCategoryId);
+                         })->get();
+        
+            foreach ($providers as $provider) {
+                Notification::create([
+                    'user_id' => $provider->id,
+                    'message' => 'A new problem has been posted: ' . $problem->title,
+                    'type' => 'problem',
+                    'link' => '/problem/' . $problem->id
+                ]);
             }
 
             return response()->json([
