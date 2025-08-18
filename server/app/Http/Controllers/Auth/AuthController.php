@@ -66,9 +66,13 @@ class AuthController extends Controller
     
             // Create token with 24-hour expiry
             $token = $user->createToken('auth_token', ['*'], now()->addHours(24))->plainTextToken;
+
+            $role = $user->role;
     
             return response()->json([
                 'token' => $token,
+                'user_id' => $user->id,
+                'user_role' => $role,
                 'token_type' => 'Bearer',
                 'expires_at' => now()->addHours(24)->toDateTimeString(),
             ]);
