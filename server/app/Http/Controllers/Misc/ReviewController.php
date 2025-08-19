@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Misc\RegisterReviewRequest;
 use App\Http\Requests\Misc\UpdateReviewRequest;
 use App\Models\Review;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -120,6 +121,12 @@ class ReviewController extends Controller
 
             Review::create($validated);
 
+            Notification::create([
+                'user_id' => $validated['reviewee_id'],
+                'notification' => 'You have a new review from ' . Auth::user()->name,
+                'type' => 'review',
+            ]);
+
             return response()->json([
                 'success' => 'Your review for ' . $validated['reviewee_id'] . ' has been saved.'
             ], 200);
@@ -233,7 +240,7 @@ class ReviewController extends Controller
      * @OA\Schema(type="integer")
      * ),
      * @OA\Response(
-     * response=200,
+     * response=204,
      * description="Review deleted successfully",
      * @OA\JsonContent(
      * @OA\Property(property="success", type="string", example="Your review for 123 has been deleted.")
@@ -283,9 +290,7 @@ class ReviewController extends Controller
 
             $review->delete();
 
-            return response()->json([
-                'success' => 'Your review for ' . $review->reviewee_id . ' has been deleted.'
-            ], 200);
+            return response()->json(null, 204);
         } catch (\Exception $e) {
             Log::error($e);
             return response()->json([

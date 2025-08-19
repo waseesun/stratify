@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Project;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Project\RegisterProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
+use App\Models\Notification;
 use App\Models\Problem;
 use App\Models\Proposal;
 use App\Models\Project;
@@ -16,6 +17,15 @@ class ProjectController extends Controller
 {
     public function __construct() {
         $this->middleware('auth:sanctum');
+    }
+
+    private function createNotification($userId, $message, $project, $deleted = false) {
+        Notification::create([
+            'user_id' => $userId,
+            'message' => $message,
+            'type' => 'project',
+            'link' => $deleted ? null : '/projects/' . $project->id,
+        ]);
     }
     
     /**
@@ -238,14 +248,34 @@ class ProjectController extends Controller
             $problem->status = 'sold';
             $problem->save();
 
-            // reject other proposals
+            $this->createNotification(Auth::user()->id, 'Your problem ' . $problem->title . ' has been sold.', $project);
+
+            $rejectedProposals = $problem->proposals()
+                                        ->where('id', '!=', $validated->proposal_id)
+                                        ->get();
+
+            // reject all other proposals
             $problem->proposals()
-                ->where('id', '!=', $project->proposal_id)
+                ->where('id', '!=', $validated->proposal_id)
                 ->update(['status' => 'rejected']);
 
-            $proposal = Proposal::find($request->proposal_id);
+            foreach ($rejectedProposals as $rejectedProposal) {
+                $this->createNotification(
+                    $rejectedProposal->provider_id, 
+                    'Your proposal for problem ' . $problem->title . ' has been rejected. Better luck next time.', 
+                    $project
+                );
+            }
+
+            $proposal = Proposal::find($validated->proposal_id);
             $proposal->status = 'accepted';
             $proposal->save();
+
+            $this->createNotification(
+                $proposal->provider_id, 
+                'Your proposal for problem ' . $problem->title . ' has been accepted. You can now start working on the project.', 
+                $project
+            );
 
             return response()->json([
                 "success" => 'Project created successfully'
@@ -347,14 +377,40 @@ class ProjectController extends Controller
 
             $project->update($validated);
 
+            if (isset($validated['status']) && $validated['status'] == 'completed') {
+                $this->createNotification(
+                    Auth::user()->id, 
+                    'Your project ' . $project->problem->title . ' has been completed.', 
+                    $project
+                );
+
+                $this->createNotification(
+                    $project->proposal->provider_id, 
+                    'The project ' . $project->problem->title . ' has been completed.', 
+                    $project
+                );
+            }
+
             if (isset($validated['status']) && $validated['status'] == 'cancelled') {
                 $problem = $project->problem;
                 $problem->status = 'cancelled';
                 $problem->save();
 
+                $this->createNotification(
+                    $project->proposal->provider_id, 
+                    'The project ' . $problem->title . ' has been cancelled.', 
+                    $project
+                );
+
                 $proposal = $project->proposal;
                 $proposal->status = 'rejected';
                 $proposal->save();
+
+                $this->createNotification(
+                    $problem->company_id, 
+                    'The proposal for problem ' . $problem->title . ' has been rejected.', 
+                    $project
+                );
             }
 
             return response()->json([
@@ -412,7 +468,10 @@ class ProjectController extends Controller
     public function destroy(Request $request, string $project)
     {
         try {
-            $project = Project::with('problem')->find($project);
+            $project = Project::with([
+                'problem.company:id',
+                'proposal.provider:id'
+            ])->find($project);
 
             if (!$project) {
                 return response()->json([
@@ -428,6 +487,20 @@ class ProjectController extends Controller
                     "errors" => 'You are not authorized to delete this project.'
                 ], 403);
             }
+
+            $this->createNotification(
+                Auth::user()->id, 
+                'Your project ' . $project->problem->title . ' has been cancelled.', 
+                $project,
+                true
+            );
+
+            $this->createNotification(
+                $project->proposal->provider_id, 
+                'The project ' . $project->problem->title . ' has been cancelled.', 
+                $project,
+                true
+            );
 
             $project->delete();
 

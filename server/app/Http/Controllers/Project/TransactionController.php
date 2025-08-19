@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Project\RegisterTransactionRequest;
 use App\Models\Transaction;
 use App\Models\Project;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -198,7 +199,7 @@ class TransactionController extends Controller
             $user = Auth::user();
             $validated = $request->validated();
 
-            $project = Project::with('problem.company:id', 'proposal.provider:id')
+            $project = Project::with('problem.company:id,username', 'proposal.provider:id,username')
                 ->find($validated['project_id']);
                 
             if ($user->id !== $project->problem->company_id && !$user->is_super_admin) {
@@ -214,6 +215,18 @@ class TransactionController extends Controller
             $validated['release_date'] = now()->toDateTimeString();
 
             Transaction::create($validated);
+
+            Notification::create([
+                'user_id' => $project->problem->company_id,
+                'message' => $validated['amount'] . ' transfered to ' . $project->proposal->provider->username,
+                'type' => 'transaction',
+            ]);
+
+            Notification::create([
+                'user_id' => $project->proposal->provider_id,
+                'message' => 'You have received ' . $validated['amount'] . ' from ' . $project->problem->company->username,
+                'type' => 'transaction',
+            ]);
 
             return response()->json([
                 "success" => 'Transaction created successfully',
@@ -242,7 +255,7 @@ class TransactionController extends Controller
      * @OA\Schema(type="integer")
      * ),
      * @OA\Response(
-     * response=200,
+     * response=204,
      * description="Transaction deleted successfully",
      * @OA\JsonContent(type="object", nullable=true)
      * ),
@@ -285,7 +298,7 @@ class TransactionController extends Controller
             }
 
             $transaction->delete();
-            return response()->json(null, 200);
+            return response()->json(null, 204);
         } catch (\Exception $e) {
             Log::error($e);
             return response()->json([
