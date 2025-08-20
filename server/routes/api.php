@@ -129,11 +129,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])
         ->name('api.deleteReview');
 
+    Route::get('/notifications/available', [NotificationController::class, 'isNotiAvailable'])
+        ->name('api.isNotiAvailable');
+
     Route::get('/notifications', [NotificationController::class, 'index'])
         ->name('api.getNotifications');
 
     Route::get('/notifications/{notification}', [NotificationController::class, 'show'])
         ->name('api.getNotification');
+
+    Route::put('notifications/{notification}', [NotificationController::class, 'markAsRead'])
+        ->name('api.markAsRead');
 
     Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])
         ->name('api.deleteNotification');
