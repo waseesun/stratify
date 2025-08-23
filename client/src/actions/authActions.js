@@ -42,7 +42,7 @@ export async function loginAction(formData) {
   try {
     // Make the login request to the backend API
     const response = await login(credentials);
-
+    
     if (
       response.token &&
       response.user_role &&

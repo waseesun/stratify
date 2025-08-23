@@ -2,8 +2,12 @@
 import {
   getUsers,
   getUser,
-  createUser,
+  createCompanyUser,
+  createProviderUser,
+  createAdminUser,
   updateUser,
+  updateUserCategories,
+  updateUserPortfolioLinks,
   deleteUser,
 } from "@/libs/api";
 import { logoutAction } from "./authActions";
@@ -37,6 +41,14 @@ export const actionError = async (response) => {
       errorMessages["password"] = response.error.password;
     }
 
+    if (response.error.description) {
+      errorMessages["description"] = response.error.description;
+    }
+
+    if (response.error.image_url) {
+      errorMessages["image_url"] = response.error.image_url;
+    }
+
     // Combine messages into a single string with \n between each
     return { error: errorMessages };
   }
@@ -45,9 +57,9 @@ export const actionError = async (response) => {
   return { error: { error: response.error } };
 };
 
-export const getUsersAction = async () => {
+export const getUsersAction = async (queryParams = {}) => {
   try {
-    const response = await getUsers();
+    const response = await getUsers(queryParams);
 
     if (response.error) {
       return { error: response.error };
@@ -83,7 +95,7 @@ export const getUserAction = async (id) => {
   }
 };
 
-export const createUserAction = async (formData) => {
+export const createUserAction = async (formData, userType) => {
   const email = formData.get("email");
   const username = formData.get("username");
   const first_name = formData.get("first_name");
@@ -91,6 +103,8 @@ export const createUserAction = async (formData) => {
   const address = formData.get("address");
   const password = formData.get("password");
   const password_confirmation = formData.get("password_confirmation");
+  const description = formData.get("description");
+  const image_url = formData.get("image_url");
 
   const errors = {};
 
@@ -122,12 +136,24 @@ export const createUserAction = async (formData) => {
     ...(first_name && { first_name }),
     ...(last_name && { last_name }),
     ...(address && { address }),
+    ...(description && { description }),
+    ...(image_url && { image_url }),
     password,
     password_confirmation,
   };
 
   try {
-    const response = await createUser(data);
+    let response;
+    
+    if (userType === "company") {
+      response = await createCompanyUser(data);
+    } else if (userType === "provider") {
+      response = await createProviderUser(data);
+    } else if (userType === "admin") {
+      response = await createAdminUser(data);
+    } else {
+      return { error: "Invalid user type." };
+    }
 
     if (response.error) {
       return actionError(response);
@@ -148,6 +174,8 @@ export const updateUserAction = async (id, formData) => {
   const address = formData["address"];
   const password = formData["password"];
   const password_confirmation = formData["password_confirmation"];
+  const description = formData.get("description");
+  const image_url = formData.get("image_url");
 
   const data = {
     email,
@@ -155,6 +183,8 @@ export const updateUserAction = async (id, formData) => {
     ...(first_name && { first_name }),
     ...(last_name && { last_name }),
     ...(address && { address }),
+    ...(description && { description }),
+    ...(image_url && { image_url }),
     password,
     password_confirmation,
   };
@@ -172,6 +202,36 @@ export const updateUserAction = async (id, formData) => {
     return { error: error.message || "Failed to update user." };
   }
 };
+
+export const updateUserPortfolioLinksAction = async (id, formData) => {
+  try {
+    const response = await updateUserPortfolioLinks(id, formData);
+
+    if (response.error) {
+      return actionError(response);
+    }
+
+    return { success: response.success };
+  } catch (error) {
+    console.error(error);
+    return { error: error.message || "Failed to update user portfolio links." };
+  }
+}
+
+export const updateUserCategoriesAction = async (id, formData) => {
+  try {
+    const response = await updateUserCategories(id, formData);
+
+    if (response.error) {
+      return actionError(response);
+    }
+
+    return { success: response.success };
+  } catch (error) {
+    console.error(error);
+    return { error: error.message || "Failed to update user categories." };
+  }
+}
 
 export const deleteUserAction = async (id) => {
   try {

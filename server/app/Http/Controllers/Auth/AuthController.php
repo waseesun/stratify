@@ -74,7 +74,7 @@ class AuthController extends Controller
                 'user_id' => $user->id,
                 'user_role' => $role,
                 'token_type' => 'Bearer',
-                'expires_at' => now()->addHours(24)->toDateTimeString(),
+                'token_expiry' => now()->addHours(24)->toDateTimeString(),
             ]);
         } catch (\Exception $e) {
             Log::error($e);
