@@ -33,8 +33,10 @@ class AuthController extends Controller
      * description="Successful login",
      * @OA\JsonContent(
      * @OA\Property(property="token", type="string", description="Authentication token"),
+     * @OA\Property(property="user_id", type="integer", description="User ID"),
+     * @OA\Property(property="user_role", type="string", description="User role"),
      * @OA\Property(property="token_type", type="string", example="Bearer"),
-     * @OA\Property(property="expires_at", type="string", format="date-time", example="2024-12-31 23:59:59"),
+     * @OA\Property(property="token_expiry", type="string", format="date-time", example="2024-12-31 23:59:59"),
      * )
      * ),
      * @OA\Response(
@@ -74,7 +76,7 @@ class AuthController extends Controller
                 'user_id' => $user->id,
                 'user_role' => $role,
                 'token_type' => 'Bearer',
-                'expires_at' => now()->addHours(24)->toDateTimeString(),
+                'token_expiry' => now()->addHours(24)->toDateTimeString(),
             ]);
         } catch (\Exception $e) {
             Log::error($e);

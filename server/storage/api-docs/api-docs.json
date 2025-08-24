@@ -59,11 +59,19 @@
                                             "description": "Authentication token",
                                             "type": "string"
                                         },
+                                        "user_id": {
+                                            "description": "User ID",
+                                            "type": "integer"
+                                        },
+                                        "user_role": {
+                                            "description": "User role",
+                                            "type": "string"
+                                        },
                                         "token_type": {
                                             "type": "string",
                                             "example": "Bearer"
                                         },
-                                        "expires_at": {
+                                        "token_expiry": {
                                             "type": "string",
                                             "format": "date-time",
                                             "example": "2024-12-31 23:59:59"
