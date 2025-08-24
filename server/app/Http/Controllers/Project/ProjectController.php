@@ -251,12 +251,12 @@ class ProjectController extends Controller
             $this->createNotification(Auth::user()->id, 'Your problem ' . $problem->title . ' has been sold.', $project);
 
             $rejectedProposals = $problem->proposals()
-                                        ->where('id', '!=', $validated->proposal_id)
+                                        ->where('id', '!=', $validated['proposal_id'])
                                         ->get();
 
             // reject all other proposals
             $problem->proposals()
-                ->where('id', '!=', $validated->proposal_id)
+                ->where('id', '!=', $validated['proposal_id'])
                 ->update(['status' => 'rejected']);
 
             foreach ($rejectedProposals as $rejectedProposal) {
@@ -267,7 +267,7 @@ class ProjectController extends Controller
                 );
             }
 
-            $proposal = Proposal::find($validated->proposal_id);
+            $proposal = Proposal::find($validated['proposal_id']);
             $proposal->status = 'accepted';
             $proposal->save();
 

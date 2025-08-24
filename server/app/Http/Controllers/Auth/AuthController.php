@@ -33,8 +33,10 @@ class AuthController extends Controller
      * description="Successful login",
      * @OA\JsonContent(
      * @OA\Property(property="token", type="string", description="Authentication token"),
+     * @OA\Property(property="user_id", type="integer", description="User ID"),
+     * @OA\Property(property="user_role", type="string", description="User role"),
      * @OA\Property(property="token_type", type="string", example="Bearer"),
-     * @OA\Property(property="expires_at", type="string", format="date-time", example="2024-12-31 23:59:59"),
+     * @OA\Property(property="token_expiry", type="string", format="date-time", example="2024-12-31 23:59:59"),
      * )
      * ),
      * @OA\Response(
