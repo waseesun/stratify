@@ -38,13 +38,55 @@ export const updateUser = async (id, data) => {
 };
 
 export const updateUserPortfolioLinks = async (id, data) => {
-  return apiClient.patch(`/users/${id}/portfolio-links`, data);
+  return apiClient.patch(`/users/${id}/portfolio-links/`, data);
 };
 
 export const updateUserCategories = async (id, data) => {
-  return apiClient.patch(`/users/${id}/categories`, data);
+  return apiClient.patch(`/users/${id}/categories/`, data);
 };
 
 export const deleteUser = async (id) => {
   return apiClient.delete(`/users/${id}/`);
 };
+
+export const getCategories = async () => {
+  return apiClient.get("/categories/");
+};
+
+export const getCategory = async (id) => {
+  return apiClient.get(`/categories/${id}/`);
+};
+
+export const createCategory = async (data) => {
+  return apiClient.post("/categories/", data);
+};
+
+export const deleteCategory = async (id) => {
+  return apiClient.delete(`/categories/${id}/`);
+};
+
+export const getProblems = async (queryParams = {}) => {
+  const params = new URLSearchParams(queryParams);
+  return apiClient.get(`/problems/?${params.toString()}`);
+};
+
+export const getProblem = async (id) => {
+  return apiClient.get(`/problems/${id}/`);
+};
+
+export const getCompanyProblems = async () => {
+  return apiClient.get(`/problems/company/`);
+};
+
+export const createProblem = async (data) => {
+  return apiClient.post("/problems/", data);
+};
+
+export const updateProblem = async (id, data) => {
+  return apiClient.patch(`/problems/${id}/`, data);
+};
+
+export const deleteProblem = async (id) => {
+  return apiClient.delete(`/problems/${id}/`);
+};
+
