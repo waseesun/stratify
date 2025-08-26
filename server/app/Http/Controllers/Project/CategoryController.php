@@ -52,7 +52,7 @@ class CategoryController extends Controller
         } catch (\Exception $e) {
             Log::error($e);
             return response()->json([
-                'error' => $e->getMessage()
+                'errors' => $e->getMessage()
             ], 500);
         }
     }
@@ -102,7 +102,7 @@ class CategoryController extends Controller
         } catch (\Exception $e) {
             Log::error($e);
             return response()->json([
-                'error' => $e->getMessage()
+                'errors' => $e->getMessage()
             ], 500);
         }
     }
@@ -163,7 +163,7 @@ class CategoryController extends Controller
         } catch (\Exception $e) {
             Log::error($e);
             return response()->json([
-                'error' => $e->getMessage()
+                'errors' => $e->getMessage()
             ], 500);
         }
     }
@@ -227,7 +227,7 @@ class CategoryController extends Controller
         } catch (\Exception $e) {
             Log::error($e);
             return response()->json([
-                'error' => $e->getMessage()
+                'errors' => $e->getMessage()
             ], 500);
         }
     }

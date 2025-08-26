@@ -15,11 +15,13 @@ use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
-    public function __construct() {
+    public function __construct()
+    {
         $this->middleware('auth:sanctum');
     }
 
-    private function createNotification($userId, $message, $project, $deleted = false) {
+    private function createNotification($userId, $message, $project, $deleted = false)
+    {
         Notification::create([
             'user_id' => $userId,
             'message' => $message,
@@ -27,14 +29,14 @@ class ProjectController extends Controller
             'link' => $deleted ? null : '/projects/' . $project->id,
         ]);
     }
-    
+
     /**
      * @OA\Get(
      * path="/api/projects",
      * operationId="getProjects",
      * tags={"Projects"},
      * summary="Get all projects for the authenticated user",
-     * description="Retrieves a paginated list of projects where the authenticated user is either the company or the provider. Admins see all projects.",
+     * description="Retrieves a paginated list of projects where the authenticated user is either the company or the provider. Admins see all projects. You can filter by title, and the response includes problem and proposal titles.",
      * security={{"sanctum": {}}},
      * @OA\Parameter(
      * name="page",
@@ -42,6 +44,13 @@ class ProjectController extends Controller
      * description="Page number for pagination",
      * required=false,
      * @OA\Schema(type="integer", default=1)
+     * ),
+     * @OA\Parameter(
+     * name="title",
+     * in="query",
+     * description="Filter projects by the title of the related problem or proposal.",
+     * required=false,
+     * @OA\Schema(type="string")
      * ),
      * @OA\Response(
      * response=200,
@@ -60,24 +69,45 @@ class ProjectController extends Controller
      * )
      * )
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
             $user = Auth::user();
-            $query = Project::query();
+
+            $query = Project::with(['problem', 'proposal']);
+            $title = $request->query('title');
 
             if (!$user->is_admin) {
                 $userId = $user->id;
 
-                // Filter projects where the authenticated user is either the company or the provider
-                $query->whereHas('problem', function ($q) use ($userId) {
-                    $q->where('company_id', $userId);
-                })->orWhereHas('proposal', function ($q) use ($userId) {
-                    $q->where('provider_id', $userId);
+                $query->where(function ($q) use ($userId) {
+                    $q->whereHas('problem', function ($q) use ($userId) {
+                        $q->where('company_id', $userId);
+                    })->orWhereHas('proposal', function ($q) use ($userId) {
+                        $q->where('provider_id', $userId);
+                    });
+                });
+            }
+
+            if ($title) {
+                $query->where(function ($q) use ($title) {
+                    $q->whereHas('problem', function ($q) use ($title) {
+                        $q->whereRaw('LOWER(title) LIKE ?', ['%' . strtolower($title) . '%']);
+                    })->orWhereHas('proposal', function ($q) use ($title) {
+                        $q->whereRaw('LOWER(title) LIKE ?', ['%' . strtolower($title) . '%']);
+                    });
                 });
             }
 
             $projects = $query->paginate(10);
+
+            $projects->through(function ($project) {
+                $project->problem_title = optional($project->problem)->title;
+                $project->proposal_title = optional($project->proposal)->title;
+                unset($project->problem, $project->proposal);
+                return $project;
+            });
+            
             return response()->json($projects, 200);
         } catch (\Exception $e) {
             Log::error($e);
@@ -251,8 +281,8 @@ class ProjectController extends Controller
             $this->createNotification(Auth::user()->id, 'Your problem ' . $problem->title . ' has been sold.', $project);
 
             $rejectedProposals = $problem->proposals()
-                                        ->where('id', '!=', $validated['proposal_id'])
-                                        ->get();
+                ->where('id', '!=', $validated['proposal_id'])
+                ->get();
 
             // reject all other proposals
             $problem->proposals()
@@ -261,8 +291,8 @@ class ProjectController extends Controller
 
             foreach ($rejectedProposals as $rejectedProposal) {
                 $this->createNotification(
-                    $rejectedProposal->provider_id, 
-                    'Your proposal for problem ' . $problem->title . ' has been rejected. Better luck next time.', 
+                    $rejectedProposal->provider_id,
+                    'Your proposal for problem ' . $problem->title . ' has been rejected. Better luck next time.',
                     $project
                 );
             }
@@ -272,8 +302,8 @@ class ProjectController extends Controller
             $proposal->save();
 
             $this->createNotification(
-                $proposal->provider_id, 
-                'Your proposal for problem ' . $problem->title . ' has been accepted. You can now start working on the project.', 
+                $proposal->provider_id,
+                'Your proposal for problem ' . $problem->title . ' has been accepted. You can now start working on the project.',
                 $project
             );
 
@@ -379,14 +409,14 @@ class ProjectController extends Controller
 
             if (isset($validated['status']) && $validated['status'] == 'completed') {
                 $this->createNotification(
-                    Auth::user()->id, 
-                    'Your project ' . $project->problem->title . ' has been completed.', 
+                    Auth::user()->id,
+                    'Your project ' . $project->problem->title . ' has been completed.',
                     $project
                 );
 
                 $this->createNotification(
-                    $project->proposal->provider_id, 
-                    'The project ' . $project->problem->title . ' has been completed.', 
+                    $project->proposal->provider_id,
+                    'The project ' . $project->problem->title . ' has been completed.',
                     $project
                 );
             }
@@ -397,8 +427,8 @@ class ProjectController extends Controller
                 $problem->save();
 
                 $this->createNotification(
-                    $project->proposal->provider_id, 
-                    'The project ' . $problem->title . ' has been cancelled.', 
+                    $project->proposal->provider_id,
+                    'The project ' . $problem->title . ' has been cancelled.',
                     $project
                 );
 
@@ -407,8 +437,8 @@ class ProjectController extends Controller
                 $proposal->save();
 
                 $this->createNotification(
-                    $problem->company_id, 
-                    'The proposal for problem ' . $problem->title . ' has been rejected.', 
+                    $problem->company_id,
+                    'The proposal for problem ' . $problem->title . ' has been rejected.',
                     $project
                 );
             }
@@ -489,15 +519,15 @@ class ProjectController extends Controller
             }
 
             $this->createNotification(
-                Auth::user()->id, 
-                'Your project ' . $project->problem->title . ' has been cancelled.', 
+                Auth::user()->id,
+                'Your project ' . $project->problem->title . ' has been cancelled.',
                 $project,
                 true
             );
 
             $this->createNotification(
-                $project->proposal->provider_id, 
-                'The project ' . $project->problem->title . ' has been cancelled.', 
+                $project->proposal->provider_id,
+                'The project ' . $project->problem->title . ' has been cancelled.',
                 $project,
                 true
             );

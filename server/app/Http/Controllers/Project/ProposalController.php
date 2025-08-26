@@ -78,8 +78,8 @@ class ProposalController extends Controller
      * path="/api/proposals",
      * operationId="getAllProposals",
      * tags={"Proposals"},
-     * summary="Get all proposals",
-     * description="Retrieves a paginated list of all proposals. Accessible to authenticated users.",
+     * summary="Get all proposals with optional filters",
+     * description="Retrieves a paginated list of all proposals. You can optionally filter by title and status. Accessible to authenticated users.",
      * security={{"sanctum": {}}},
      * @OA\Parameter(
      * name="page",
@@ -87,6 +87,20 @@ class ProposalController extends Controller
      * description="Page number for pagination",
      * required=false,
      * @OA\Schema(type="integer", default=1)
+     * ),
+     * @OA\Parameter(
+     * name="title",
+     * in="query",
+     * description="Filter proposals by title (case-insensitive, partial match)",
+     * required=false,
+     * @OA\Schema(type="string")
+     * ),
+     * @OA\Parameter(
+     * name="status",
+     * in="query",
+     * description="Filter proposals by status (e.g., 'submitted', 'accepted', 'rejected')",
+     * required=false,
+     * @OA\Schema(type="string", enum={"submitted", "accepted", "rejected"})
      * ),
      * @OA\Response(
      * response=200,
@@ -105,10 +119,11 @@ class ProposalController extends Controller
      * )
      * )
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         try {
             $user = Auth::user();
+
             $query = Proposal::query();
 
             if (!$user->is_admin) {
@@ -117,6 +132,17 @@ class ProposalController extends Controller
                     ->orWhereHas('problem', function ($q) use ($userId) {
                         $q->where('company_id', $userId);
                     });
+            }
+
+            $title = $request->query('title');
+            $status = $request->query('status');
+
+            if ($title) {
+                $query->whereRaw('LOWER(title) LIKE ?', ['%' . strtolower($title) . '%']);
+            }
+
+            if ($status) {
+                $query->where('status', $status);
             }
 
             $proposals = $query->paginate(10);

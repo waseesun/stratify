@@ -1145,8 +1145,8 @@
                 "tags": [
                     "Problems"
                 ],
-                "summary": "Get all problems",
-                "description": "Retrieves a paginated list of all problems. This endpoint is accessible to authenticated users.",
+                "summary": "Get all problems with optional filters",
+                "description": "Retrieves a paginated list of problems. You can optionally filter by title and status. This endpoint is accessible to authenticated users.",
                 "operationId": "getAllProblems",
                 "parameters": [
                     {
@@ -1157,6 +1157,29 @@
                         "schema": {
                             "type": "integer",
                             "default": 1
+                        }
+                    },
+                    {
+                        "name": "title",
+                        "in": "query",
+                        "description": "Filter problems by title (case-insensitive, partial match)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter problems by status (e.g., 'open', 'sold', 'cancelled')",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "open",
+                                "sold",
+                                "cancelled"
+                            ]
                         }
                     }
                 ],
@@ -1748,7 +1771,7 @@
                     "Projects"
                 ],
                 "summary": "Get all projects for the authenticated user",
-                "description": "Retrieves a paginated list of projects where the authenticated user is either the company or the provider. Admins see all projects.",
+                "description": "Retrieves a paginated list of projects where the authenticated user is either the company or the provider. Admins see all projects. You can filter by title, and the response includes problem and proposal titles.",
                 "operationId": "getProjects",
                 "parameters": [
                     {
@@ -1759,6 +1782,15 @@
                         "schema": {
                             "type": "integer",
                             "default": 1
+                        }
+                    },
+                    {
+                        "name": "title",
+                        "in": "query",
+                        "description": "Filter projects by the title of the related problem or proposal.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
@@ -2151,8 +2183,8 @@
                 "tags": [
                     "Proposals"
                 ],
-                "summary": "Get all proposals",
-                "description": "Retrieves a paginated list of all proposals. Accessible to authenticated users.",
+                "summary": "Get all proposals with optional filters",
+                "description": "Retrieves a paginated list of all proposals. You can optionally filter by title and status. Accessible to authenticated users.",
                 "operationId": "getAllProposals",
                 "parameters": [
                     {
@@ -2163,6 +2195,29 @@
                         "schema": {
                             "type": "integer",
                             "default": 1
+                        }
+                    },
+                    {
+                        "name": "title",
+                        "in": "query",
+                        "description": "Filter proposals by title (case-insensitive, partial match)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter proposals by status (e.g., 'submitted', 'accepted', 'rejected')",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "submitted",
+                                "accepted",
+                                "rejected"
+                            ]
                         }
                     }
                 ],

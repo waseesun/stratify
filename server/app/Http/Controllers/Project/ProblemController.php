@@ -17,7 +17,8 @@ use App\Http\OpenApi\Annotations as OA;
 
 class ProblemController extends Controller
 {
-    public function __construct() {
+    public function __construct()
+    {
         $this->middleware('auth:sanctum');
     }
 
@@ -26,8 +27,8 @@ class ProblemController extends Controller
      * path="/api/problems",
      * operationId="getAllProblems",
      * tags={"Problems"},
-     * summary="Get all problems",
-     * description="Retrieves a paginated list of all problems. This endpoint is accessible to authenticated users.",
+     * summary="Get all problems with optional filters",
+     * description="Retrieves a paginated list of problems. You can optionally filter by title and status. This endpoint is accessible to authenticated users.",
      * security={{"sanctum": {}}},
      * @OA\Parameter(
      * name="page",
@@ -35,6 +36,20 @@ class ProblemController extends Controller
      * description="Page number for pagination",
      * required=false,
      * @OA\Schema(type="integer", default=1)
+     * ),
+     * @OA\Parameter(
+     * name="title",
+     * in="query",
+     * description="Filter problems by title (case-insensitive, partial match)",
+     * required=false,
+     * @OA\Schema(type="string")
+     * ),
+     * @OA\Parameter(
+     * name="status",
+     * in="query",
+     * description="Filter problems by status (e.g., 'open', 'sold', 'cancelled')",
+     * required=false,
+     * @OA\Schema(type="string", enum={"open", "sold", "cancelled"})
      * ),
      * @OA\Response(
      * response=200,
@@ -53,10 +68,23 @@ class ProblemController extends Controller
      * )
      * )
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $problems = Problem::paginate(10);
+            $title = $request->query('title');
+            $status = $request->query('status');
+
+            $query = Problem::query();
+
+            if ($title) {
+                $query->whereRaw('LOWER(title) LIKE ?', ['%' . strtolower($title) . '%']);
+            }
+
+            if ($status) {
+                $query->where('status', $status);
+            }
+
+            $problems = $query->paginate(10);
             return response()->json($problems, 200);
         } catch (\Exception $e) {
             Log::error($e);
@@ -166,7 +194,7 @@ class ProblemController extends Controller
             $user = Auth::user();
 
             $problem = Problem::with('skillsets', 'company:id,username')
-                        ->find($problem);
+                ->find($problem);
 
             if (!$problem) {
                 return response()->json([
@@ -181,15 +209,15 @@ class ProblemController extends Controller
                 $problem->load([
                     'proposals' => function ($q) {
                         $q->select('id', 'problem_id', 'provider_id', 'title', 'status')
-                        ->with('provider:id,username');
+                            ->with('provider:id,username');
                     }
                 ]);
             } elseif ($user->isProvider()) {
                 $problem->load([
                     'proposals' => function ($q) use ($user) {
                         $q->where('provider_id', $user->id)
-                        ->select('id', 'problem_id', 'provider_id', 'title', 'status')
-                        ->with('provider:id,username');
+                            ->select('id', 'problem_id', 'provider_id', 'title', 'status')
+                            ->with('provider:id,username');
                     }
                 ]);
             }
@@ -288,7 +316,7 @@ class ProblemController extends Controller
                 "errors" => "You are not authorized to create a problem for this company ID."
             ], 403);
         }
-        
+
         $validated = $request->validated();
         $problemData = Arr::except($validated, ['skills']);
         $skillsData = $validated['skills'];
@@ -315,10 +343,10 @@ class ProblemController extends Controller
 
             $problemCategoryId = $problem->category_id;
             $providers = User::where('role', 'provider')
-                         ->whereHas('categories', function ($query) use ($problemCategoryId) {
-                             $query->where('categories.id', $problemCategoryId);
-                         })->get();
-        
+                ->whereHas('categories', function ($query) use ($problemCategoryId) {
+                    $query->where('categories.id', $problemCategoryId);
+                })->get();
+
             foreach ($providers as $provider) {
                 Notification::create([
                     'user_id' => $provider->id,
@@ -440,7 +468,7 @@ class ProblemController extends Controller
 
             if ($skillsData !== null) {
                 $existingSkillNames = $problem->skillsets()->pluck('skill')->toArray();
-                
+
                 $skillsToAdd = array_diff($skillsData, $existingSkillNames);
                 $skillsToRemove = array_diff($existingSkillNames, $skillsData);
 
@@ -450,7 +478,7 @@ class ProblemController extends Controller
 
                 if (!empty($skillsToAdd)) {
                     $problem->skillsets()->createMany(
-                        collect($skillsToAdd)->map(fn ($skill) => ['skill' => $skill])->toArray()
+                        collect($skillsToAdd)->map(fn($skill) => ['skill' => $skill])->toArray()
                     );
                 }
             }

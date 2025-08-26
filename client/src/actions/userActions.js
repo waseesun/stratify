@@ -36,7 +36,6 @@ export const actionError = async (response) => {
       errorMessages["address"] = response.error.address;
     }
 
-    // Check for each possible attribute and append its messages
     if (response.error.password) {
       errorMessages["password"] = response.error.password;
     }
@@ -49,11 +48,9 @@ export const actionError = async (response) => {
       errorMessages["image_url"] = response.error.image_url;
     }
 
-    // Combine messages into a single string with \n between each
     return { error: errorMessages };
   }
 
-  // If it's not an object, return the error as is (string or other type)
   return { error: { error: response.error } };
 };
 
@@ -104,7 +101,6 @@ export const createUserAction = async (formData, userType) => {
   const password = formData.get("password");
   const password_confirmation = formData.get("password_confirmation");
   const description = formData.get("description");
-  const image_url = formData.get("image_url");
 
   const errors = {};
 
@@ -137,7 +133,6 @@ export const createUserAction = async (formData, userType) => {
     ...(last_name && { last_name }),
     ...(address && { address }),
     ...(description && { description }),
-    ...(image_url && { image_url }),
     password,
     password_confirmation,
   };

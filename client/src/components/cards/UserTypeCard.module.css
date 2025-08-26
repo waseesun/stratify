@@ -1,0 +1,47 @@
+.card {
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+  border: 2px solid #404040;
+  border-radius: 12px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  color: white;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.card:hover {
+  border-color: #2d5a2d;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(45, 90, 45, 0.3);
+}
+
+.card.selected {
+  border-color: #2d5a2d;
+  background: linear-gradient(135deg, #2d5a2d 0%, #1a3a1a 100%);
+  box-shadow: 0 8px 25px rgba(45, 90, 45, 0.4);
+}
+
+.icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.8;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  color: white;
+}
+
+.description {
+  font-size: 16px;
+  margin: 0;
+  color: #cccccc;
+  line-height: 1.5;
+}
