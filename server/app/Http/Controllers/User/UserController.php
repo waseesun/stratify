@@ -197,7 +197,9 @@ class UserController extends Controller
                 ->first();
 
             if (!$foundUser) {
-                return response()->json(['error' => 'User not found'], 404);
+                return response()->json([
+                    'errors' => 'User not found'
+                ], 404);
             }
 
             $foundUser->load('categories');
@@ -306,8 +308,6 @@ class UserController extends Controller
         $validated = $request->validated();
         $validated['role'] = 'company';
 
-        $this->imageHandler($request, $validated);
-
         try {
             User::create($validated);
 
@@ -412,8 +412,6 @@ class UserController extends Controller
     {
         $validated = $request->validated();
         $validated['role'] = 'provider';
-
-        $this->imageHandler($request, $validated);
 
         try {
             User::create($validated);
@@ -533,8 +531,6 @@ class UserController extends Controller
         $validated = $request->validated();
         $validated['role'] = 'admin';
         $validated['is_admin'] = true;
-
-        $this->imageHandler($request, $validated);
 
         try {
             User::create($validated);
@@ -656,7 +652,7 @@ class UserController extends Controller
 
             if (!$foundUser) {
                 return response()->json([
-                    'error' => 'User not found'
+                    'errors' => 'User not found'
                 ], 404);
             }
 
@@ -787,7 +783,7 @@ class UserController extends Controller
 
             if (!$foundUser) {
                 return response()->json([
-                    'error' => 'User not found'
+                    'errors' => 'User not found'
                 ], 404);
             }
 
@@ -827,7 +823,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             Log::error($e);
             return response()->json([
-                "error" => "An unexpected error occurred: " . $e->getMessage()
+                "errors" => "An unexpected error occurred: " . $e->getMessage()
             ], 500);
         }
     }
@@ -921,7 +917,7 @@ class UserController extends Controller
 
             if (!$foundUser) {
                 return response()->json([
-                    'error' => 'User not found'
+                    'errors' => 'User not found'
                 ], 404);
             }
 
@@ -1002,7 +998,7 @@ class UserController extends Controller
 
             if (!$foundUser) {
                 return response()->json([
-                    'error' => 'User not found'
+                    'errors' => 'User not found'
                 ], 404);
             }
 
@@ -1020,7 +1016,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             Log::error($e);
             return response()->json([
-                "error" => $e->getMessage()
+                "errors" => $e->getMessage()
             ], 500);
         }
     }

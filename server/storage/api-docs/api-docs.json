@@ -1771,7 +1771,7 @@
                     "Projects"
                 ],
                 "summary": "Get all projects for the authenticated user",
-                "description": "Retrieves a paginated list of projects where the authenticated user is either the company or the provider. Admins see all projects. You can filter by title.",
+                "description": "Retrieves a paginated list of projects where the authenticated user is either the company or the provider. Admins see all projects. You can filter by title, and the response includes problem and proposal titles.",
                 "operationId": "getProjects",
                 "parameters": [
                     {
