@@ -12,7 +12,6 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem 2rem;
-  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -37,10 +36,14 @@
 }
 
 .logo {
+  margin: 0;
+}
+
+.stratify {
+  text-decoration: none;
   color: white;
   font-size: 1.5rem;
   font-weight: 700;
-  margin: 0;
 }
 
 .menuContainer {
@@ -67,34 +70,75 @@
   transition: all 0.3s ease;
 }
 
-.dropdown {
-  position: absolute;
-  top: 100%;
+.sidebar {
+  position: fixed;
+  top: 0;
   left: 0;
-  background: #2d2d2d;
-  border: 1px solid #404040;
-  border-radius: 8px;
-  min-width: 150px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  z-index: 1001;
+  height: 100vh;
+  width: 250px;
+  background-color: #1a1a1a;
+  border-right: 1px solid #404040;
+  color: white;
+  z-index: 1002;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
 }
 
-.dropdownItem {
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #404040;
+  margin-bottom: 1rem;
+}
+
+.sidebarTitle {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.sidebarList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebarItem {
+  margin-bottom: 0.5rem;
+}
+
+.sidebarItem a {
   display: block;
   padding: 0.75rem 1rem;
   color: white;
   text-decoration: none;
+  border-radius: 6px;
   transition: background-color 0.2s ease;
 }
 
-.dropdownItem:hover {
-  background-color: #404040;
+.sidebarItem a:hover {
+  background-color: #2d2d2d;
 }
 
-.profileButton,
-.logoutButton,
 .adminButton {
-  background: #1a5f1a;
+  background: #5f1a1a;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -104,50 +148,6 @@
   transition: background-color 0.2s ease;
 }
 
-.profileButton:hover,
-.logoutButton:hover,
-.adminButton:hover {
-  background: #0f4a0f;
-}
-
-.adminButton {
-  background: #5f1a1a;
-}
-
 .adminButton:hover {
   background: #4a0f0f;
 }
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .container {
-    padding: 1rem;
-  }
-
-  .logo {
-    font-size: 1.2rem;
-  }
-
-  .rightSection {
-    gap: 0.5rem;
-  }
-
-  .profileButton,
-  .logoutButton,
-  .adminButton {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .rightSection {
-    flex-direction: column;
-    gap: 0.3rem;
-  }
-
-  .adminButton {
-    order: -1;
-  }
-}
-
