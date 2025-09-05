@@ -7,14 +7,12 @@ import styles from "./LoginForm.module.css"
 import { DEFAULT_LOGIN_REDIRECT } from "@/route"
 
 export default function LoginForm() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
+  const [errors, setErrors] = useState({})
   const [success, setSuccess] = useState("")
   const router = useRouter()
 
   const handleSubmit = async (formData) => {
-    setError("")
+    setErrors({})
     setSuccess("")
 
     try {
@@ -26,11 +24,13 @@ export default function LoginForm() {
         setTimeout(() => {
           router.push(DEFAULT_LOGIN_REDIRECT)
         }, 1500)
-      } else if (result.error) {
-        setError(result.error)
+      } else if (result.error.email) {
+        setErrors(result.error)
+      } else {
+        setErrors(result)
       }
     } catch (err) {
-      setError("An unexpected error occurred")
+      setErrors({ error: "An unexpected error occurred. Please try again." })
     }
   }
 
@@ -39,8 +39,8 @@ export default function LoginForm() {
       <form action={handleSubmit} className={styles.loginForm}>
         <h2 className={styles.title}>Login</h2>
 
-        {error && <div className={styles.errorMessage}>{error}</div>}
-
+        {errors.email && <div className={styles.errorMessage}>{errors.email[0]}</div>}
+        {errors.error && <div className={styles.errorMessage}>{errors.error}</div>}
         {success && <div className={styles.successMessage}>{success}</div>}
 
         <div className={styles.inputGroup}>
@@ -51,8 +51,6 @@ export default function LoginForm() {
             type="email"
             id="email"
             name="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             className={styles.input}
             required
           />
@@ -66,14 +64,16 @@ export default function LoginForm() {
             type="password"
             id="password"
             name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             className={styles.input}
             required
           />
         </div>
 
         <LoginButton />
+
+        <div className={styles.loginLinkContainer}>
+          Don't have an account? <a href="/auth/register" className={styles.loginLink}>Signup</a>
+        </div>
       </form>
     </div>
   )
