@@ -4,14 +4,16 @@
   align-items: center;
   min-height: 100vh;
   padding: 20px;
-  background-color: #f8f9fa;
+  /* Changed background to black and grey gradient */
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
 }
 
 .loginForm {
-  background: white;
+  /* Changed form background to dark grey */
+  background: #2a2a2a;
   padding: 40px;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   width: 100%;
   max-width: 400px;
 }
@@ -19,7 +21,8 @@
 .title {
   text-align: center;
   margin-bottom: 30px;
-  color: #333;
+  /* Changed title text to white */
+  color: white;
   font-size: 28px;
   font-weight: 700;
 }
@@ -31,7 +34,8 @@
 .label {
   display: block;
   margin-bottom: 8px;
-  color: #555;
+  /* Changed label text to white */
+  color: white;
   font-weight: 500;
   font-size: 14px;
 }
@@ -39,7 +43,10 @@
 .input {
   width: 100%;
   padding: 12px 16px;
-  border: 2px solid #e1e5e9;
+  /* Updated input styling for dark theme */
+  border: 2px solid #444;
+  background-color: #333;
+  color: white;
   border-radius: 6px;
   font-size: 16px;
   transition: border-color 0.2s ease;
@@ -48,25 +55,47 @@
 
 .input:focus {
   outline: none;
-  border-color: #007bff;
+  /* Updated focus color to match dark green theme */
+  border-color: #1a5d1a;
 }
 
 .errorMessage {
-  background-color: #f8d7da;
-  color: #721c24;
+  /* Updated error message for dark theme */
+  background-color: #4a1a1a;
+  color: #ff6b6b;
   padding: 12px 16px;
   border-radius: 6px;
   margin-bottom: 20px;
-  border: 1px solid #f5c6cb;
+  border: 1px solid #6a2a2a;
   font-size: 14px;
 }
 
 .successMessage {
-  background-color: #d4edda;
-  color: #155724;
+  /* Updated success message for dark theme */
+  background-color: #1a4a1a;
+  color: #4ade80;
   padding: 12px 16px;
   border-radius: 6px;
   margin-bottom: 20px;
-  border: 1px solid #c3e6cb;
+  border: 1px solid #2a6a2a;
   font-size: 14px;
+}
+
+.loginLinkContainer {
+  margin-top: 25px;
+  text-align: center;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.loginLink {
+  color: #4ade80;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.loginLink:hover {
+  color: #64f38d;
+  text-decoration: underline;
 }

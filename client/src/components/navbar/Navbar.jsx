@@ -1,37 +1,58 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { getUserRoleAction } from "@/actions/authActions"
+import { redirect, useRouter } from "next/navigation"
+import { getUserIdAction, getUserRoleAction } from "@/actions/authActions"
+import { LogoutButton } from "@/components/buttons/Buttons"
+import { DEFAULT_LOGIN_REDIRECT } from "@/route"
 import styles from "./Navbar.module.css"
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [userRole, setUserRole] = useState(null)
+  const [userId, setUserId] = useState(null)
   const router = useRouter()
 
   useEffect(() => {
     const fetchUserRole = async () => {
       const result = await getUserRoleAction()
-      if (result.role) {
-        setUserRole(result.role)
+      console.log("User role:", result);
+      if (result) {
+        setUserRole(result)
+      } else {
+        setUserRole(null)
+        redirect("/auth/login")
       }
     }
+
+    const fetchUserId = async () => {
+      const result = await getUserIdAction()
+      console.log("User ID:", result);
+      if (result) {
+        setUserId(result)
+      } else {
+        setUserId(null)
+        redirect("/auth/login")
+      }
+    }
+
     fetchUserRole()
+    fetchUserId()
   }, [])
 
-  const handleLogout = () => {
-    // Implement logout logic
-    router.push("/auth/login")
+  const handleHome = () => {
+    router.push(DEFAULT_LOGIN_REDIRECT)
+    setIsMenuOpen(false)
   }
 
   const handleProfile = () => {
-    router.push("/profile")
+    router.push(`/profile/${userId}`)
+    setIsMenuOpen(false)
   }
 
   const handleAdminDashboard = () => {
     router.push("/admin")
+    setIsMenuOpen(false)
   }
 
   const menuItems = [
@@ -42,56 +63,65 @@ export default function Navbar() {
   ]
 
   return (
-    <nav className={styles.navbar}>
-      <div className={styles.container}>
-        {/* Left Menu */}
-        <div className={styles.leftSection}>
-          <div className={styles.menuContainer}>
-            <button className={styles.menuButton} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+    <>
+      <nav className={styles.navbar}>
+        <div className={styles.container}>
+          <div className={styles.leftSection}>
+            <button className={styles.menuButton} onClick={() => setIsMenuOpen(true)}>
               <div className={styles.hamburger}>
                 <span></span>
                 <span></span>
                 <span></span>
               </div>
             </button>
-            {isMenuOpen && (
-              <div className={styles.dropdown}>
-                {menuItems.map((item) => (
-                  <a
-                    key={item.name}
-                    href={item.href}
-                    className={styles.dropdownItem}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {item.name}
-                  </a>
-                ))}
-              </div>
-            )}
+          </div>
+
+          <div className={styles.centerSection}>
+            <h1 className={styles.logo}>
+              <a className={styles.stratify} href={DEFAULT_LOGIN_REDIRECT}>Stratify</a>
+            </h1>
+          </div>
+
+          <div className={styles.rightSection}>
+            <LogoutButton />
           </div>
         </div>
-
-        {/* Center Logo */}
-        <div className={styles.centerSection}>
-          <h1 className={styles.logo}>Stratify</h1>
+      </nav>
+      
+      <aside className={`${styles.sidebar} ${isMenuOpen ? styles.open : ''}`}>
+        <div className={styles.sidebarHeader}>
+          <h2 className={styles.sidebarTitle}>Menu</h2>
+          <button className={styles.closeButton} onClick={() => setIsMenuOpen(false)}>
+            &#8592;
+          </button>
         </div>
+        <ul className={styles.sidebarList}>
+          <li className={styles.sidebarItem}>
+            <a onClick={handleHome}>Home</a>
+          </li>
 
-        {/* Right Section */}
-        <div className={styles.rightSection}>
+          <li className={styles.sidebarItem}>
+            <a onClick={handleProfile}>Profile</a>
+          </li>
+          
           {userRole === "admin" && (
-            <button className={styles.adminButton} onClick={handleAdminDashboard}>
-              Admin Dashboard
-            </button>
+            <li className={styles.sidebarItem}>
+              <a onClick={handleAdminDashboard}>Admin Dashboard</a>
+            </li>
           )}
-          <button className={styles.profileButton} onClick={handleProfile}>
-            Profile
-          </button>
-          <button className={styles.logoutButton} onClick={handleLogout}>
-            Logout
-          </button>
-        </div>
-      </div>
-    </nav>
+          
+          {menuItems.map((item) => (
+            <li key={item.name} className={styles.sidebarItem}>
+              <a
+                href={item.href}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </aside>
+    </>
   )
 }
-

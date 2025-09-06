@@ -1,5 +1,6 @@
 "use client"
 import { useFormStatus } from "react-dom"
+import { logoutAction } from "@/actions/authActions"
 import styles from "./Buttons.module.css"
 
 export function LoginButton() {
@@ -9,6 +10,18 @@ export function LoginButton() {
     <button type="submit" disabled={pending} className={styles.loginButton}>
       {pending ? "Logging in..." : "Login"}
     </button>
+  )
+}
+
+export function LogoutButton() {
+  const { pending } = useFormStatus()
+
+  return (
+    <form action={logoutAction}>
+      <button type="submit" className={styles.logoutButton} disabled={pending}>
+        {pending ? "Logging Out..." : "Logout"}
+      </button>
+    </form>
   )
 }
 
