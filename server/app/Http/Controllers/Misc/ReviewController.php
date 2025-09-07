@@ -54,7 +54,7 @@ class ReviewController extends Controller
     public function index(string $user)
     {
         try {
-            $review = Review::where('reviewee_id', $user)->paginate(10);
+            $review = Review::where('reviewee_id', $user)->get();
             return response()->json($review);
         } catch (\Exception $e) {
             Log::error($e);

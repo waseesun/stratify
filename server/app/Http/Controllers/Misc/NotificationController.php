@@ -104,7 +104,7 @@ class NotificationController extends Controller
     public function show(string $notification)
     {
         try {
-            $notification = Notification::find($notification);
+            $notifications = Notification::where('user_id', Auth::user()->id)->orderByDesc('created_at')->paginate(10);
 
             if (!$notification) {
                 return response()->json([
