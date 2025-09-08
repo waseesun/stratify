@@ -30,6 +30,7 @@ export class ApiClient {
         try {
           const errorData = await response.json();
 
+          console.log(errorData);
           if (errorData.errors) {
             return { error: errorData.errors }; // Return specific error
           }

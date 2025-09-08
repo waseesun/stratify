@@ -100,7 +100,6 @@ export const deleteTransactionAction = async (id) => {
       return { error: response.error };
     }
     
-    await logoutAction()
     return { success: response.success };
   } catch (error) {
     console.error(error);

@@ -15,8 +15,8 @@ export const actionError = async (response) => {
       errorMessages["problem"] = response.error.problem_id;
     }
 
-    if (response.error.propasal_id) {
-      errorMessages["propasal"] = response.error.propasal_id;
+    if (response.error.proposal_id) {
+      errorMessages["proposal"] = response.error.proposal_id;
     }
 
     if (response.error.fee) {
@@ -39,7 +39,7 @@ export const actionError = async (response) => {
     return { error: errorMessages };
   }
 
-  // If it's not an object, return the error as is (string or other propasal_id)
+  // If it's not an object, return the error as is (string or other proposal_id)
   return { error: { error: response.error } };
 };
 
@@ -83,14 +83,14 @@ export const getProjectAction = async (id) => {
 
 export const createProjectAction = async (formData) => {
   const problem_id = formData.get("problem");
-  const propasal_id = formData.get("propasal");
+  const proposal_id = formData.get("proposal");
   const fee = formData.get("fee");
   const start_date = formData.get("start_date");
   const end_date = formData.get("end_date");
 
   const data = {
     problem_id,
-    propasal_id,
+    proposal_id,
     fee,
     start_date,
     end_date,

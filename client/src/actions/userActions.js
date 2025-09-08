@@ -10,11 +10,26 @@ import {
   updateUserPortfolioLinks,
   deleteUser,
 } from "@/libs/api";
-import { logoutAction } from "./authActions";
+import { deleteSessionCookie } from "@/libs/cookie";
 
 export const actionError = async (response) => {
   if (typeof response.error === "object") {
     const errorMessages = {};
+
+    for (const key in response.error) {
+      if (key.startsWith("links")) {
+        if (!errorMessages.links) {
+          errorMessages.links = [];
+        }
+        errorMessages.links.push(...response.error[key]);
+      }
+      if (key.startsWith("categories")) {
+        if (!errorMessages.categories) {
+          errorMessages.categories = [];
+        }
+        errorMessages.categories.push(...response.error[key]);
+      }
+    }
 
     if (response.error.email) {
       errorMessages["email"] = response.error.email;
@@ -97,6 +112,8 @@ export const createUserAction = async (formData, userType) => {
   const username = formData.get("username");
   const first_name = formData.get("first_name");
   const last_name = formData.get("last_name");
+  const address = formData.get("address");
+  const description = formData.get("description");
   const password = formData.get("password");
   const password_confirmation = formData.get("password_confirmation");
 
@@ -129,6 +146,8 @@ export const createUserAction = async (formData, userType) => {
     ...(username && { username }),
     ...(first_name && { first_name }),
     ...(last_name && { last_name }),
+    ...(address && { address }),
+    ...(description && { description }),
     password,
     password_confirmation,
   };
@@ -160,6 +179,7 @@ export const createUserAction = async (formData, userType) => {
 export const updateUserAction = async (id, formData) => {
   try {
     let data, response;
+    console.log(formData);
     let image_url = formData.get("image_url");
 
     if (image_url.size > 0) {
@@ -193,7 +213,7 @@ export const updateUserAction = async (id, formData) => {
 export const updateUserPortfolioLinksAction = async (id, formData) => {
   try {
     const response = await updateUserPortfolioLinks(id, formData);
-
+    console.log(response);
     if (response.error) {
       return actionError(response);
     }
@@ -228,7 +248,8 @@ export const deleteUserAction = async (id) => {
       return { error: response.error };
     }
     
-    await logoutAction()
+    await deleteSessionCookie();
+    
     return { success: "User deleted successfully" };
   } catch (error) {
     console.error(error);

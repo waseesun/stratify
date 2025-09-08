@@ -1,0 +1,111 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  color: white;
+}
+
+.content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.loading,
+.error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  font-size: 1.2rem;
+  color: white;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+}
+
+.navigation {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.navButton {
+  background: #404040;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  flex: 1;
+  min-width: 120px;
+}
+
+.navButton:hover {
+  background: #505050;
+}
+
+.navButton.active {
+  background: #1a5f1a;
+}
+
+.navButton.active:hover {
+  background: #0f4a0f;
+}
+
+.deleteButton {
+  background: #5f1a1a;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+  flex: 1;
+  min-width: 120px;
+}
+
+.deleteButton:hover {
+  background: #4a0f0f;
+}
+
+.formContainer {
+  background: #2d2d2d;
+  border-radius: 12px;
+  padding: 2rem;
+  border: 1px solid #404040;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .content {
+    padding: 1rem;
+  }
+
+  .navigation {
+    flex-direction: column;
+  }
+
+  .navButton,
+  .deleteButton {
+    flex: none;
+    width: 100%;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+}
+

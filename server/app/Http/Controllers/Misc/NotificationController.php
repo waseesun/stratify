@@ -49,7 +49,7 @@ class NotificationController extends Controller
     public function index()
     {
         try {
-            $notifications = Notification::where('user_id', Auth::user()->id)->paginate(10);
+            $notifications = Notification::where('user_id', Auth::user()->id)->orderByDesc('created_at')->paginate(10);
             return response()->json($notifications, 200);
         } catch (\Exception $e) {
             Log::error($e);
@@ -104,7 +104,7 @@ class NotificationController extends Controller
     public function show(string $notification)
     {
         try {
-            $notifications = Notification::where('user_id', Auth::user()->id)->orderByDesc('created_at')->paginate(10);
+            $notification = Notification::find($notification);
 
             if (!$notification) {
                 return response()->json([

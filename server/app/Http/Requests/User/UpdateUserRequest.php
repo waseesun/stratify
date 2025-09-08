@@ -26,14 +26,14 @@ class UpdateUserRequest extends BaseRequest
         $userId = $this->route('user');
 
         return [
-            'first_name' => ['sometimes', 'string', 'max:255'],
-            'last_name' => ['sometimes', 'string', 'max:255'],
-            'username' => ['sometimes', 'string', 'max:255', Rule::unique('users', 'username')->ignore($userId)],
-            'address' => ['sometimes', 'string', 'max:255'],
-            'description' => ['sometimes', 'string'],
-            'password' => ['sometimes', 'string', 'min:8', 'confirmed', new StrongPassword()],
+            'first_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['nullable', 'string', 'max:255'],
+            'username' => ['nullable', 'string', 'max:255', Rule::unique('users', 'username')->ignore($userId)],
+            'address' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed', new StrongPassword()],
             'image_url' => [
-                'sometimes',
+                'nullable',
                 'image',
                 'mimes:jpeg,png,jpg', // Allowed MIME types
                 'max:2048', // Max File Size in KB

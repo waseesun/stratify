@@ -87,14 +87,12 @@ export const createProposalAction = async (formData) => {
   const problem_id = formData.get("problem");
   const description = formData.get("description");
   const title = formData.get("title");
-  const docs = formData.get("docs");
 
   const data = {
     provider_id,
     problem_id,
     description,
     title,
-    docs,
   };
 
   try {
@@ -114,12 +112,10 @@ export const createProposalAction = async (formData) => {
 export const updateProposalAction = async (id, formData) => {
   const description = formData.get("description");
   const title = formData.get("title");
-  const docs = formData.get("docs");
 
   const data = {
     ...(title && { title }),
     ...(description && { description }),
-    ...(docs && { docs }),
   };
 
   try {

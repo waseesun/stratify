@@ -218,13 +218,13 @@ class TransactionController extends Controller
 
             Notification::create([
                 'user_id' => $project->problem->company_id,
-                'message' => $validated['amount'] . ' transfered to ' . $project->proposal->provider->username,
+                'message' => '$' . $validated['amount'] . ' transfered to ' . $project->proposal->provider->username,
                 'type' => 'transaction',
             ]);
 
             Notification::create([
                 'user_id' => $project->proposal->provider_id,
-                'message' => 'You have received ' . $validated['amount'] . ' from ' . $project->problem->company->username,
+                'message' => 'You have received $' . $validated['amount'] . ' from ' . $project->problem->company->username,
                 'type' => 'transaction',
             ]);
 

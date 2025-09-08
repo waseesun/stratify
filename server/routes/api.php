@@ -60,6 +60,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/problems', [ProblemController::class, 'index'])
         ->name('api.getProblems');
 
+    Route::get('/problems/all', [ProblemController::class, 'allIndex'])
+        ->name('api.getAllProblems');
+
     Route::get('/problems/company', [ProblemController::class, 'companyIndex'])
         ->name('api.getCompanyProblems');
 

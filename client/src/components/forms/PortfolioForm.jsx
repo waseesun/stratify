@@ -1,27 +1,64 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { updateUserPortfolioLinksAction } from "@/actions/userActions"
-import {UpdateButton} from "@/components/buttons/Buttons"
+import { UpdateButton } from "@/components/buttons/Buttons"
 import styles from "./PortfolioForm.module.css"
 
-export default function PortfolioForm({ userId }) {
+export default function PortfolioForm({ userId, initialLinks }) {
+  const router = useRouter()
+  const [links, setLinks] = useState([""])
   const [errors, setErrors] = useState({})
   const [success, setSuccess] = useState("")
 
-  const handleSubmit = async (formData) => {
+  useEffect(() => {
+    if (initialLinks && initialLinks.length > 0) {
+      const urls = initialLinks.map(linkObj => linkObj.link)
+      setLinks([...urls, ""])
+    } else {
+      setLinks([""])
+    }
+  }, [initialLinks])
+
+  const addLinkField = () => {
+    setLinks([...links, ""])
+  }
+
+  const removeLinkField = (index) => {
+    const newLinks = links.filter((_, i) => i !== index)
+    setLinks(newLinks)
+  }
+
+  const handleLinkChange = (index, value) => {
+    const newLinks = [...links]
+    newLinks[index] = value
+    setLinks(newLinks)
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
     setErrors({})
     setSuccess("")
 
     try {
-      const result = await updateUserPortfolioLinksAction(userId, formData)
+      const validLinks = links.filter((link) => link.trim() !== "")
+
+      const result = await updateUserPortfolioLinksAction(userId, {
+        links: validLinks,
+      })
+      console.log(result)
 
       if (result.error) {
         setErrors(result.error)
       } else if (result.success) {
         setSuccess(result.success)
+        setTimeout(() => {
+          router.push(`/profile/${userId}`)
+        }, 1500)
       }
     } catch (error) {
+      console.error("An unexpected error occurred:", error)
       setErrors({ general: "An unexpected error occurred" })
     }
   }
@@ -33,71 +70,45 @@ export default function PortfolioForm({ userId }) {
       {success && <div className={styles.success}>{success}</div>}
       {errors.general && <div className={styles.error}>{errors.general}</div>}
 
-      <form action={handleSubmit} className={styles.form}>
-        <div className={styles.formGroup}>
-          <label htmlFor="github" className={styles.label}>
-            GitHub URL
-          </label>
-          <input
-            type="url"
-            id="github"
-            name="github"
-            className={styles.input}
-            placeholder="https://github.com/username"
-          />
-        </div>
+      <form onSubmit={handleSubmit} className={styles.form}>
+        {links.map((link, index) => (
+          <div key={index} className={styles.formGroup}>
+            <label htmlFor={`link-${index}`} className={styles.label}>
+              Link {index + 1}
+            </label>
+            <div className={styles.inputContainer}>
+              <input
+                type="text"
+                id={`link-${index}`}
+                name={`link-${index}`}
+                className={styles.input}
+                placeholder="https://example.com/portfolio"
+                value={link}
+                onChange={(e) => handleLinkChange(index, e.target.value)}
+              />
+              {links.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeLinkField(index)}
+                  className={styles.removeButton}
+                >
+                  −
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+        {errors.links && (
+          <div className={styles.error}>{errors.links}</div>
+        )}
 
-        <div className={styles.formGroup}>
-          <label htmlFor="linkedin" className={styles.label}>
-            LinkedIn URL
-          </label>
-          <input
-            type="url"
-            id="linkedin"
-            name="linkedin"
-            className={styles.input}
-            placeholder="https://linkedin.com/in/username"
-          />
-        </div>
-
-        <div className={styles.formGroup}>
-          <label htmlFor="portfolio" className={styles.label}>
-            Portfolio Website
-          </label>
-          <input
-            type="url"
-            id="portfolio"
-            name="portfolio"
-            className={styles.input}
-            placeholder="https://yourportfolio.com"
-          />
-        </div>
-
-        <div className={styles.formGroup}>
-          <label htmlFor="behance" className={styles.label}>
-            Behance URL
-          </label>
-          <input
-            type="url"
-            id="behance"
-            name="behance"
-            className={styles.input}
-            placeholder="https://behance.net/username"
-          />
-        </div>
-
-        <div className={styles.formGroup}>
-          <label htmlFor="dribbble" className={styles.label}>
-            Dribbble URL
-          </label>
-          <input
-            type="url"
-            id="dribbble"
-            name="dribbble"
-            className={styles.input}
-            placeholder="https://dribbble.com/username"
-          />
-        </div>
+        <button
+          type="button"
+          onClick={addLinkField}
+          className={styles.addButton}
+        >
+          + Add Another Link
+        </button>
 
         <UpdateButton>Update Portfolio Links</UpdateButton>
       </form>

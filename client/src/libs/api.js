@@ -74,6 +74,10 @@ export const getProblems = async (queryParams = {}) => {
   return apiClient.get(`/problems/?${params.toString()}`);
 };
 
+export const getAllProblems = async () => {
+  return apiClient.get(`/problems/all/`);
+}
+
 export const getCompanyProblems = async (queryParams = {}) => {
   const params = new URLSearchParams(queryParams);
   return apiClient.get(`/problems/company/?${params.toString()}`);

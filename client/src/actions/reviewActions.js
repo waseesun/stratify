@@ -38,8 +38,7 @@ export const getReviewsAction = async (user_id) => {
 
     return { data: response };
   } catch (error) {
-    console.error(error);
-    return { error: error.message || "An unexpected Error occured." };
+    return { error: error.error || "An unexpected Error occured." };
   }
 };
 
@@ -64,7 +63,7 @@ export const createReviewAction = async (formData) => {
     return { success: response.success };
   } catch (error) {
     console.error(error);
-    return { error: error.message || "An unexpected Error occured." };
+    return { error: error.error || "An unexpected Error occured." };
   }
 };
 
@@ -88,7 +87,7 @@ export const updateReviewAction = async (id, formData) => {
     return { success: response.success };
   } catch (error) {
     console.error(error);
-    return { error: error.message || "An unexpected Error occured." };
+    return { error: error.error || "An unexpected Error occured." };
   }
 };
 
@@ -104,6 +103,6 @@ export const deleteReviewAction = async (id) => {
     return { success: "Review deleted successfully" };
   } catch (error) {
     console.error(error);
-    return { error: error.message || "An unexpected Error occured." };
+    return { error: error.error || "An unexpected Error occured." };
   }
 };

@@ -94,6 +94,19 @@ class ProblemController extends Controller
         }
     }
 
+    public function allIndex(Request $request)
+    {
+        try {
+            $problems = Problem::all();
+            return response()->json($problems, 200);
+        } catch (\Exception $e) {
+            Log::error($e);
+            return response()->json([
+                "errors" => 'An unexpected error occurred: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
      * @OA\Get(
      * path="/api/problems/company",
@@ -462,7 +475,11 @@ class ProblemController extends Controller
 
             $validated = $request->validated();
             $problemData = Arr::except($validated, ['skills']);
-            $skillsData = $validated['skills'];
+
+            $skillsData = null;
+            if (isset($validated['skills'])) {
+                $skillsData = $validated['skills'];
+            }
 
             $problem->update($problemData);
 

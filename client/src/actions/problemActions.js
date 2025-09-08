@@ -1,6 +1,8 @@
 "use server";
 import {
   getProblems,
+  getAllProblems,
+  getCompanyProblems,
   getProblem,
   createProblem,
   updateProblem,
@@ -83,6 +85,44 @@ export const getProblemsAction = async (queryParams = {}) => {
   }
 };
 
+export const getCompanyProblemsAction = async (queryParams = {}) => {
+  try {
+    const response = await getCompanyProblems(queryParams);
+
+    if (response.error) {
+      return { error: response.error };
+    }
+
+    return {
+      data: response.data,
+      pagination: {
+        count: response.total,
+        total_pages: Math.ceil(response.total / response.per_page),
+        next: response.next_page_url ? new URL(response.next_page_url).search : null,
+        previous: response.prev_page_url ? new URL(response.prev_page_url).search : null,
+      },
+    };
+  } catch (error) {
+    console.error(error);
+    return { error: error.message || "Failed to fetch users." };
+  }
+}
+
+export const getAllProblemsAction = async () => {
+  try {
+    const response = await getAllProblems();
+
+    if (response.error) {
+      return { error: response.error };
+    }
+
+    return { data: response };
+  } catch (error) {
+    console.error(error);
+    return { error: error.message || "Failed to fetch users." };
+  }
+}
+
 export const getProblemAction = async (id) => {
   try {
     const response = await getProblem(id);
@@ -106,7 +146,7 @@ export const createProblemAction = async (formData) => {
   const budget = formData.get("budget");
   const timeline_value = formData.get("timeline_value");
   const timeline_unit = formData.get("timeline_unit");
-  const skills = formData.get("skills");
+  const skills = formData.getAll("skills[]");
 
   const data = {
     company_id,
@@ -140,7 +180,7 @@ export const updateProblemAction = async (id, formData) => {
   const budget = formData.get("budget");
   const timeline_value = formData.get("timeline_value");
   const timeline_unit = formData.get("timeline_unit");
-  const skills = formData.get("skills");
+  const skills = formData.getAll("skills[]");
   const status = formData.get("status");
 
   const data = {
@@ -150,7 +190,7 @@ export const updateProblemAction = async (id, formData) => {
     ...(description && { description }),
     ...(timeline_unit && { timeline_unit }),
     ...(timeline_value && { timeline_value }),
-    ...(skills && { skills }),
+    ...(skills.length > 0 && { skills }),
     ...(status && { status }),
   };
 
