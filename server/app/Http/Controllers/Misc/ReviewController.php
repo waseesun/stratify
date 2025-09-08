@@ -54,7 +54,7 @@ class ReviewController extends Controller
     public function index(string $user)
     {
         try {
-            $review = Review::where('reviewee_id', $user)->paginate(10);
+            $review = Review::where('reviewee_id', $user)->get();
             return response()->json($review);
         } catch (\Exception $e) {
             Log::error($e);
@@ -113,7 +113,7 @@ class ReviewController extends Controller
 
             if (Auth::user()->id == $validated['reviewee_id']) {
                 return response()->json([
-                    'error' => 'You cannot review yourself'
+                    'errors' => 'You cannot review yourself'
                 ], 403);
             }
 
@@ -123,17 +123,17 @@ class ReviewController extends Controller
 
             Notification::create([
                 'user_id' => $validated['reviewee_id'],
-                'notification' => 'You have a new review from ' . Auth::user()->name,
+                'message' => 'You have a new review from ' . Auth::user()->name,
                 'type' => 'review',
             ]);
 
             return response()->json([
-                'success' => 'Your review for ' . $validated['reviewee_id'] . ' has been saved.'
+                'success' => 'Your review has been saved.'
             ], 200);
         } catch (\Exception $e) {
             Log::error($e);
             return response()->json([
-                'error' => $e->getMessage()
+                'errors' => $e->getMessage()
             ], 500);
         }
     }
@@ -199,13 +199,13 @@ class ReviewController extends Controller
 
             if (!$review) {
                 return response()->json([
-                    'error' => 'Review not found'
+                    'errors' => 'Review not found'
                 ], 404);
             }
 
             if (Auth::user()->id !== $review->reviewer_id) {
                 return response()->json([
-                    'error' => 'You are not authorized to update this review'
+                    'errors' => 'You are not authorized to update this review'
                 ], 403);
             }
 
@@ -219,7 +219,7 @@ class ReviewController extends Controller
         } catch (\Exception $e) {
             Log::error($e);
             return response()->json([
-                'error' => $e->getMessage()
+                'errors' => $e->getMessage()
             ], 500);
         }
     }
@@ -275,7 +275,7 @@ class ReviewController extends Controller
 
             if (!$review) {
                 return response()->json([
-                    'error' => 'Review not found'
+                    'errors' => 'Review not found'
                 ], 404);
             }
 
@@ -284,7 +284,7 @@ class ReviewController extends Controller
                 Auth::user()->id !== $review->reviewer_id
             ) {
                 return response()->json([
-                    'error' => 'You are not authorized to delete this review'
+                    'errors' => 'You are not authorized to delete this review'
                 ], 403);
             }
 
@@ -294,7 +294,7 @@ class ReviewController extends Controller
         } catch (\Exception $e) {
             Log::error($e);
             return response()->json([
-                'error' => $e->getMessage()
+                'errors' => $e->getMessage()
             ], 500);
         }
     }

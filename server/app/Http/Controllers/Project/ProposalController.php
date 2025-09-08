@@ -128,10 +128,12 @@ class ProposalController extends Controller
 
             if (!$user->is_admin) {
                 $userId = $user->id;
-                $query->where('provider_id', $userId)
-                    ->orWhereHas('problem', function ($q) use ($userId) {
-                        $q->where('company_id', $userId);
+                $query->where(function ($q) use ($userId) {
+                    $q->where('provider_id', $userId)
+                    ->orWhereHas('problem', function ($subQuery) use ($userId) {
+                        $subQuery->where('company_id', $userId);
                     });
+                });
             }
 
             $title = $request->query('title');

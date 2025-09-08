@@ -50,16 +50,22 @@ export default function Navbar() {
     setIsMenuOpen(false)
   }
 
-  const handleAdminDashboard = () => {
-    router.push("/admin")
+  const handleCategoryManagement = () => {
+    router.push("/category-management")
+    setIsMenuOpen(false)
+  }
+
+  const handleMyProblems = () => {
+    router.push("/my-problems")
     setIsMenuOpen(false)
   }
 
   const menuItems = [
     { name: "Problems", href: "/problems" },
     { name: "Proposals", href: "/proposals" },
+    { name: "Projects", href: "/projects" },
     { name: "Transactions", href: "/transactions" },
-    { name: "Reviews", href: "/reviews" },
+    { name: "Notification", href: "/notifications" },
   ]
 
   return (
@@ -104,9 +110,15 @@ export default function Navbar() {
             <a onClick={handleProfile}>Profile</a>
           </li>
           
+          {userRole === "company" && (
+            <li className={styles.sidebarItem}>
+              <a onClick={handleMyProblems}>My Problems</a>
+            </li>
+          )}
+
           {userRole === "admin" && (
             <li className={styles.sidebarItem}>
-              <a onClick={handleAdminDashboard}>Admin Dashboard</a>
+              <a onClick={handleCategoryManagement}>Category Management</a>
             </li>
           )}
           

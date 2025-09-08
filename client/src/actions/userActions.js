@@ -10,11 +10,26 @@ import {
   updateUserPortfolioLinks,
   deleteUser,
 } from "@/libs/api";
-import { logoutAction } from "./authActions";
+import { deleteSessionCookie } from "@/libs/cookie";
 
 export const actionError = async (response) => {
   if (typeof response.error === "object") {
     const errorMessages = {};
+
+    for (const key in response.error) {
+      if (key.startsWith("links")) {
+        if (!errorMessages.links) {
+          errorMessages.links = [];
+        }
+        errorMessages.links.push(...response.error[key]);
+      }
+      if (key.startsWith("categories")) {
+        if (!errorMessages.categories) {
+          errorMessages.categories = [];
+        }
+        errorMessages.categories.push(...response.error[key]);
+      }
+    }
 
     if (response.error.email) {
       errorMessages["email"] = response.error.email;
@@ -98,9 +113,9 @@ export const createUserAction = async (formData, userType) => {
   const first_name = formData.get("first_name");
   const last_name = formData.get("last_name");
   const address = formData.get("address");
+  const description = formData.get("description");
   const password = formData.get("password");
   const password_confirmation = formData.get("password_confirmation");
-  const description = formData.get("description");
 
   const errors = {};
 
@@ -162,30 +177,27 @@ export const createUserAction = async (formData, userType) => {
 };
 
 export const updateUserAction = async (id, formData) => {
-  const email = formData["email"];
-  const username = formData["username"];
-  const first_name = formData["first_name"];
-  const last_name = formData["last_name"];
-  const address = formData["address"];
-  const password = formData["password"];
-  const password_confirmation = formData["password_confirmation"];
-  const description = formData.get("description");
-  const image_url = formData.get("image_url");
-
-  const data = {
-    email,
-    ...(username && { username }),
-    ...(first_name && { first_name }),
-    ...(last_name && { last_name }),
-    ...(address && { address }),
-    ...(description && { description }),
-    ...(image_url && { image_url }),
-    password,
-    password_confirmation,
-  };
-
   try {
-    const response = await updateUser(id, data);
+    let data, response;
+    console.log(formData);
+    let image_url = formData.get("image_url");
+
+    if (image_url.size > 0) {
+      response = await updateUser(id, formData, true);
+    } else {
+      data = {
+        ...(formData.get("email") && { email: formData.get("email") }),
+        ...(formData.get("username") && { username: formData.get("username") }),
+        ...(formData.get("first_name") && { first_name: formData.get("first_name") }),
+        ...(formData.get("last_name") && { last_name: formData.get("last_name") }),
+        ...(formData.get("address") && { address: formData.get("address") }),
+        ...(formData.get("description") && { description: formData.get("description") }),
+        ...(formData.get("password") && { password: formData.get("password") }),
+        ...(formData.get("password_confirmation") && { password_confirmation: formData.get("password_confirmation") }),
+      };
+
+      response = await updateUser(id, data);
+    }
 
     if (response.error) {
       return actionError(response);
@@ -201,7 +213,7 @@ export const updateUserAction = async (id, formData) => {
 export const updateUserPortfolioLinksAction = async (id, formData) => {
   try {
     const response = await updateUserPortfolioLinks(id, formData);
-
+    console.log(response);
     if (response.error) {
       return actionError(response);
     }
@@ -236,8 +248,9 @@ export const deleteUserAction = async (id) => {
       return { error: response.error };
     }
     
-    await logoutAction()
-    return { success: response.success };
+    await deleteSessionCookie();
+    
+    return { success: "User deleted successfully" };
   } catch (error) {
     console.error(error);
     return { error: error.message || "Failed to delete user." };

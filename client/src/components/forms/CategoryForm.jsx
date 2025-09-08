@@ -1,21 +1,58 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { getCategoriesAction } from "@/actions/categoryActions"
 import { updateUserCategoriesAction } from "@/actions/userActions"
-import {UpdateButton} from "@/components/buttons/Buttons"
+import { UpdateButton } from "@/components/buttons/Buttons"
 import styles from "./CategoryForm.module.css"
 
-export default function CategoryForm({ userId }) {
+export default function CategoryForm({ userId, initialCategoryNames }) {
+  const [availableCategories, setAvailableCategories] = useState([])
+  const [selectedCategoryNames, setSelectedCategoryNames] = useState(new Set())
   const [errors, setErrors] = useState({})
   const [success, setSuccess] = useState("")
 
-  const handleSubmit = async (formData) => {
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const result = await getCategoriesAction()
+      if (result.error) {
+        setErrors(result.error)
+      } else {
+        setAvailableCategories(result.data)
+        
+        if (initialCategoryNames) {
+          setSelectedCategoryNames(new Set(initialCategoryNames))
+        }
+      }
+    }
+    fetchCategories()
+  }, [initialCategoryNames])
+
+  const handleCheckboxChange = (categoryName) => {
+    setSelectedCategoryNames(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(categoryName)) {
+        newSet.delete(categoryName)
+      } else {
+        newSet.add(categoryName)
+      }
+      return newSet
+    })
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
     setErrors({})
     setSuccess("")
 
+    const selectedCategoryIds = availableCategories
+      .filter(category => selectedCategoryNames.has(category.name))
+      .map(category => category.id)
+    
     try {
-      const result = await updateUserCategoriesAction(userId, formData)
-
+      const result = await updateUserCategoriesAction(userId, {
+        categories: selectedCategoryIds,
+      })
       if (result.error) {
         setErrors(result.error)
       } else if (result.success) {
@@ -26,51 +63,31 @@ export default function CategoryForm({ userId }) {
     }
   }
 
-  const categories = [
-    "Web Development",
-    "Mobile Development",
-    "UI/UX Design",
-    "Graphic Design",
-    "Digital Marketing",
-    "Content Writing",
-    "Data Analysis",
-    "Project Management",
-    "Consulting",
-    "Photography",
-    "Video Editing",
-    "Translation",
-  ]
-
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>Update Categories</h2>
+      <h2 className={styles.title}>Update User Categories</h2>
 
       {success && <div className={styles.success}>{success}</div>}
       {errors.general && <div className={styles.error}>{errors.general}</div>}
 
-      <form action={handleSubmit} className={styles.form}>
+      <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.categoriesGrid}>
-          {categories.map((category) => (
-            <div key={category} className={styles.checkboxGroup}>
-              <input type="checkbox" id={category} name="categories" value={category} className={styles.checkbox} />
-              <label htmlFor={category} className={styles.checkboxLabel}>
-                {category}
+          {availableCategories.map((category) => (
+            <div key={category.id} className={styles.checkboxGroup}>
+              <input
+                type="checkbox"
+                id={`cat-${category.id}`}
+                name="categories"
+                value={category.id}
+                className={styles.checkbox}
+                checked={selectedCategoryNames.has(category.name)}
+                onChange={() => handleCheckboxChange(category.name)}
+              />
+              <label htmlFor={`cat-${category.id}`} className={styles.checkboxLabel}>
+                {category.name}
               </label>
             </div>
           ))}
-        </div>
-
-        <div className={styles.formGroup}>
-          <label htmlFor="custom_category" className={styles.label}>
-            Custom Category
-          </label>
-          <input
-            type="text"
-            id="custom_category"
-            name="custom_category"
-            className={styles.input}
-            placeholder="Enter a custom category"
-          />
         </div>
 
         <UpdateButton>Update Categories</UpdateButton>
@@ -78,4 +95,3 @@ export default function CategoryForm({ userId }) {
     </div>
   )
 }
-

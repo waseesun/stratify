@@ -5,7 +5,6 @@ import {
   createCategory,
   deleteCategory
 } from "@/libs/api";
-import { logoutAction } from "./authActions";
 
 export const actionError = async (response) => {
   if (typeof response.error === "object") {
@@ -21,7 +20,6 @@ export const actionError = async (response) => {
   return { error: { error: response.error } };
 };
 
-// need checking
 export const getCategoriesAction = async () => {
   try {
     const response = await getCategories();
@@ -35,7 +33,7 @@ export const getCategoriesAction = async () => {
     };
   } catch (error) {
     console.error(error);
-    return { error: error.message || "Failed to fetch users." };
+    return { error: error.message || "An unexpected Error occured" };
   }
 };
 
@@ -50,7 +48,7 @@ export const getCategoryAction = async (id) => {
     return { data: response };
   } catch (error) {
     console.error(error);
-    return { error: error.message || "Failed to fetch user." };
+    return { error: error.message || "An unexpected Error occured" };
   }
 };
 
@@ -71,7 +69,7 @@ export const createCategoryAction = async (formData) => {
     return { success: response.success };
   } catch (error) {
     console.error(error);
-    return { error: error.message || "Failed to create user." };
+    return { error: error.message || "An unexpected Error occured" };
   }
 };
 
@@ -84,10 +82,9 @@ export const deleteCategoryAction = async (id) => {
       return { error: response.error };
     }
     
-    await logoutAction()
-    return { success: response.success };
+    return { success: "Category deleted successfully" };
   } catch (error) {
     console.error(error);
-    return { error: error.message || "Failed to delete user." };
+    return { error: error.message || "An unexpected Error occured" };
   }
 };

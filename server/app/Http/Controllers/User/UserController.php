@@ -656,7 +656,7 @@ class UserController extends Controller
                 ], 404);
             }
 
-            if (Auth::user() !== $foundUser && !Auth::user()->isSuperAdmin()) {
+            if (Auth::user()->id !== $foundUser->id && !Auth::user()->isSuperAdmin()) {
                 return response()->json([
                     "errors" => "You are not authorized to update this user."
                 ], 403);
@@ -788,7 +788,7 @@ class UserController extends Controller
             }
 
             if (
-                (Auth::user() !== $foundUser && !Auth::user()->isSuperAdmin()) ||
+                (Auth::user()->id !== $foundUser->id && !Auth::user()->isSuperAdmin()) ||
                 ($foundUser->role !== 'provider')
             ) {
                 return response()->json([
@@ -921,7 +921,7 @@ class UserController extends Controller
                 ], 404);
             }
 
-            if (Auth::user() !== $foundUser && !Auth::user()->isSuperAdmin()) {
+            if (Auth::user()->id !== $foundUser->id && !Auth::user()->isSuperAdmin()) {
                 return response()->json([
                     "errors" => "You are not authorized to update categories for this user."
                 ], 403);
@@ -1002,7 +1002,7 @@ class UserController extends Controller
                 ], 404);
             }
 
-            if (Auth::user() !== $foundUser && !Auth::user()->isSuperAdmin()) {
+            if (Auth::user()->id !== $foundUser->id && !Auth::user()->isSuperAdmin()) {
                 return response()->json([
                     'errors' => 'You are not authorized to delete this user.'
                 ], 403);
