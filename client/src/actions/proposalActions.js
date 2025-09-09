@@ -83,20 +83,8 @@ export const getProposalAction = async (id) => {
 };
 
 export const createProposalAction = async (formData) => {
-  const provider_id = formData.get("provider");
-  const problem_id = formData.get("problem");
-  const description = formData.get("description");
-  const title = formData.get("title");
-
-  const data = {
-    provider_id,
-    problem_id,
-    description,
-    title,
-  };
-
   try {
-    const response = await createProposal(data);
+    const response = await createProposal(formData);
 
     if (response.error) {
       return actionError(response);
@@ -110,16 +98,8 @@ export const createProposalAction = async (formData) => {
 };
 
 export const updateProposalAction = async (id, formData) => {
-  const description = formData.get("description");
-  const title = formData.get("title");
-
-  const data = {
-    ...(title && { title }),
-    ...(description && { description }),
-  };
-
   try {
-    const response = await updateProposal(id, data);
+    const response = await updateProposal(id, formData);
 
     if (response.error) {
       return actionError(response);

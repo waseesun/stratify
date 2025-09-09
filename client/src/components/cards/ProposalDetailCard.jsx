@@ -4,6 +4,7 @@ import styles from "./ProposalDetailCard.module.css"
 import Link from "next/link"
 
 export default function ProposalDetailCard({ proposal }) {
+  console.log(proposal)
   const getStatusClass = (status) => {
     switch (status) {
       case "submitted":
@@ -74,6 +75,28 @@ export default function ProposalDetailCard({ proposal }) {
             <span className={styles.label}>Updated:</span>
             <span className={styles.value}>{new Date(proposal.updated_at).toLocaleString()}</span>
           </div>
+        </div>
+      </div>
+
+      <div className={styles.section}>
+        <h3 className={styles.sectionTitle}>Timeline</h3>
+        <div className={styles.info}>
+          {proposal.docs && proposal.docs.length > 0 ? (
+            <div className={styles.docs}>
+              {proposal.docs.map((doc, index) => (
+                <div key={doc.id} className={styles.docsItem}>
+                  <span className={styles.docsLabel}>Proposal {index + 1}:</span>
+                  <span className={styles.docsValue}>
+                    <Link href={`${process.env.NEXT_PUBLIC_BASE_URL}${doc.file_url}`} target="_blank">
+                      File {index + 1}
+                    </Link>
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.noDocs}>No docs found.</p>
+          )}
         </div>
       </div>
     </div>
