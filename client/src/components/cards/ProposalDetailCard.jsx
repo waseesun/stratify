@@ -79,7 +79,7 @@ export default function ProposalDetailCard({ proposal }) {
       </div>
 
       <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>Timeline</h3>
+        <h3 className={styles.sectionTitle}>Proposal Documents</h3>
         <div className={styles.info}>
           {proposal.docs && proposal.docs.length > 0 ? (
             <div className={styles.docs}>
