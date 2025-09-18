@@ -28,6 +28,23 @@
   gap: 0.5rem;
 }
 
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px; 
+  margin-bottom: 10px; 
+}
+
+.warning {
+  color: #ffc107;
+  font-size: 0.875rem; 
+  font-weight: 500;
+  background-color: #ffffff;
+  padding: 5px 10px;
+  border-radius: 5px;
+  border: 1px solid #ffc107;
+}
+
 .label {
   font-weight: 500;
   color: #374151;
@@ -115,6 +132,81 @@
 .submitButton.loading {
   background-color: #6b7280;
 }
+
+.dynamicField {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.fileUpload {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-grow: 1;
+}
+
+.fileButton {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.fileButton:hover {
+  background-color: #2563eb;
+}
+
+.fileButton:active {
+  transform: translateY(0);
+}
+
+.fileButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+.fileName {
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.addButton,
+.removeButton {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  transition: background-color 0.2s ease;
+}
+
+.removeButton {
+  background-color: #dc3545;
+}
+
+.addButton:hover {
+  background-color: #218838;
+}
+
+.removeButton:hover {
+  background-color: #c82333;
+}
+
 
 @media (max-width: 640px) {
   .actions {

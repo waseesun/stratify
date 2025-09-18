@@ -109,11 +109,12 @@ export const getProposal = async (id) => {
 };
 
 export const createProposal = async (data) => {
-  return apiClient.post("/proposals/", data);
+  return apiClient.post("/proposals/", data, {}, true);
 };
 
 export const updateProposal = async (id, data) => {
-  return apiClient.patch(`/proposals/${id}/`, data);
+  data.append('_method', 'PATCH');
+  return apiClient.post(`/proposals/${id}/`, data, {}, true);
 };
 
 export const deleteProposal = async (id) => {
